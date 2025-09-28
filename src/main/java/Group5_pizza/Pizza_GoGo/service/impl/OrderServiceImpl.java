@@ -1,0 +1,65 @@
+package Pizza-GoGo.service.impl;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import Pizza-GoGo.model.Order;
+import Pizza-GoGo.model.RestaurantTable;
+import Pizza-GoGo.repository.OrderRepository;
+import Pizza-GoGo.service.OrderService;
+
+@Service
+public class OrderServiceImpl implements OrderService {
+
+    private final OrderRepository orderRepository;
+
+    public OrderServiceImpl(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
+
+    @Override
+    public Order getOrCreatePendingOrderByTable(RestaurantTable table) {
+        return orderRepository.findByTableAndStatusAndIsDeletedFalse(table, "Pending")
+                .orElseGet(() -> {
+                    Order order = new Order();
+                    order.setTable(table);
+                    order.setOrderType("Dine-in");
+                    order.setTotalAmount(java.math.BigDecimal.ZERO);
+                    order.setDepositAmount(java.math.BigDecimal.ZERO);
+                    order.setPaidAmount(java.math.BigDecimal.ZERO);
+                    order.setStatus("Pending");
+                    order.setIsDeleted(false);
+                    return orderRepository.save(order);
+                });
+    }
+
+    @Override
+    public Order getOrderById(Integer orderId) {
+        return orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+    }
+
+    @Override
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
+    // @Override
+    // public Order getOrderWithDetails(Integer orderId) {
+    // return orderRepository.findByOrderIdAndIsDeletedFalse(orderId)
+    // .orElseThrow(() -> new RuntimeException("Order not found"));
+    // }
+
+    @Override
+    public Order getOrderWithDetails(Integer orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        order.setTotalAmount(order.getOrderDetails().stream()
+                .filter(od -> od.getIsDeleted() != null && !od.getIsDeleted())
+                .map(od -> od.getUnitPrice().multiply(java.math.BigDecimal.valueOf(od.getQuantity())))
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add));
+        return order;
+    }
+
+}

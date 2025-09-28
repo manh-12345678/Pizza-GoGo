@@ -1,7 +1,7 @@
 # Read Me First
 The following was discovered as part of building this project:
 
-* The original package name 'Group5-pizza.Pizza-GoGo' is invalid and this project uses 'Group5_pizza.Pizza_GoGo' instead.
+* The original package name 'Group5-pizza.Pizza-GoGo' is invalid and this project uses 'Pizza-GoGo' instead.
 
 # Getting Started
 
