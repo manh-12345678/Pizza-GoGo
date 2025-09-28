@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="dataSourceStorageLocal" created-in="IU-251.25410.129">
+    <data-source name="@localhost" uuid="37510d23-779c-4254-b181-7f04b6e04019">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="MSSQL" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="PizzaShopManagement@localhost" uuid="8f3c2ec0-adfb-4f6c-a451-c91c2e15a694">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="MSSQL" />
+      <schema-mapping />
+    </data-source>
+  </component>
+</project>
