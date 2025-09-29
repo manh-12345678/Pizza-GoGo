@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><title>Form Table</title></head>
+<body>
+<h1 th:text="${table.tableId != null} ? 'Cập nhật bàn' : 'Thêm bàn mới'"></h1>
+<form th:action="@{/tables}" th:object="${table}" method="post">
+    <input type="hidden" th:field="*{tableId}"/>
+    <label>Số bàn:</label><input type="number" th:field="*{tableNumber}" required/><br/>
+    <label>Trạng thái:</label><input type="text" th:field="*{status}" required/><br/>
+    <button type="submit">💾 Lưu</button>
+</form>
+<a th:href="@{/tables}">⬅️ Quay lại</a>
+</body>
+</html>
