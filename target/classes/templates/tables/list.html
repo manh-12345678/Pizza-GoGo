@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><title>Restaurant Tables</title></head>
+<body>
+<h1>Danh sách bàn</h1>
+<a th:href="@{/tables/new}">➕ Thêm bàn</a>
+<table border="1">
+    <tr><th>ID</th><th>Số bàn</th><th>Trạng thái</th><th>Hành động</th></tr>
+    <tr th:each="t : ${tables}">
+        <td th:text="${t.tableId}"></td>
+        <td th:text="${t.tableNumber}"></td>
+        <td th:text="${t.status}"></td>
+        <td>
+            <a th:href="@{'/tables/edit/' + ${t.tableId}}">✏️</a>
+            <a th:href="@{'/tables/delete/' + ${t.tableId}}">🗑️</a>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
