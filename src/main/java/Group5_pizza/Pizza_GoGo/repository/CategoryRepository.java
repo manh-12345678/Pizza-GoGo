@@ -7,4 +7,6 @@ import Group5_pizza.Pizza_GoGo.model.Category;
 
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Integer> {
+
 }
+
