@@ -1,4 +1,4 @@
-package Pizza-GoGo.util;
+package Group5_pizza.Pizza_GoGo.util;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;

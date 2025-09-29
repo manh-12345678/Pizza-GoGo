@@ -1,15 +1,20 @@
-package Pizza-GoGo.service.impl;
+package Group5_pizza.Pizza_GoGo.service.impl;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+import Group5_pizza.Pizza_GoGo.model.Order;
+import Group5_pizza.Pizza_GoGo.model.OrderDetail;
+import Group5_pizza.Pizza_GoGo.model.Product;
+import Group5_pizza.Pizza_GoGo.repository.OrderDetailRepository;
+import Group5_pizza.Pizza_GoGo.service.OrderDetailService;
 import org.springframework.stereotype.Service;
 
-import Pizza-GoGo.model.Order;
-import Pizza-GoGo.model.OrderDetail;
-import Pizza-GoGo.model.Product;
-import Pizza-GoGo.repository.OrderDetailRepository;
-import Pizza-GoGo.service.OrderDetailService;
+import Group5_pizza.Pizza_GoGo.model.Order;
+import Group5_pizza.Pizza_GoGo.model.OrderDetail;
+import Group5_pizza.Pizza_GoGo.model.Product;
+import Group5_pizza.Pizza_GoGo.repository.OrderDetailRepository;
+import Group5_pizza.Pizza_GoGo.service.OrderDetailService;
 
 @Service
 public class OrderDetailServiceImpl implements OrderDetailService {

@@ -1,13 +1,17 @@
-package Pizza-GoGo.service.impl;
+package Group5_pizza.Pizza_GoGo.service.impl;
 
 import java.util.List;
 
+import Group5_pizza.Pizza_GoGo.model.Order;
+import Group5_pizza.Pizza_GoGo.model.RestaurantTable;
+import Group5_pizza.Pizza_GoGo.repository.OrderRepository;
+import Group5_pizza.Pizza_GoGo.service.OrderService;
 import org.springframework.stereotype.Service;
 
-import Pizza-GoGo.model.Order;
-import Pizza-GoGo.model.RestaurantTable;
-import Pizza-GoGo.repository.OrderRepository;
-import Pizza-GoGo.service.OrderService;
+import Group5_pizza.Pizza_GoGo.model.Order;
+import Group5_pizza.Pizza_GoGo.model.RestaurantTable;
+import Group5_pizza.Pizza_GoGo.repository.OrderRepository;
+import Group5_pizza.Pizza_GoGo.service.OrderService;
 
 @Service
 public class OrderServiceImpl implements OrderService {

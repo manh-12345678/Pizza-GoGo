@@ -1,17 +1,20 @@
-package Pizza-GoGo.service.impl;
+package Group5_pizza.Pizza_GoGo.service.impl;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import Group5_pizza.Pizza_GoGo.model.RestaurantTable;
+import Group5_pizza.Pizza_GoGo.repository.RestaurantTableRepository;
+import Group5_pizza.Pizza_GoGo.service.RestaurantTableService;
 import org.springframework.stereotype.Service;
 
 import com.google.zxing.WriterException;
 
-import Pizza-GoGo.model.RestaurantTable;
-import Pizza-GoGo.repository.RestaurantTableRepository;
-import Pizza-GoGo.service.RestaurantTableService;
-import Pizza-GoGo.util.QRCodeGenerator;
+import Group5_pizza.Pizza_GoGo.model.RestaurantTable;
+import Group5_pizza.Pizza_GoGo.repository.RestaurantTableRepository;
+import Group5_pizza.Pizza_GoGo.service.RestaurantTableService;
+import Group5_pizza.Pizza_GoGo.util.QRCodeGenerator;
 
 @Service
 public class RestaurantTableServiceImpl implements RestaurantTableService {
@@ -58,7 +61,7 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
             String qrPath = qrFolderPath + "/table-" + table.getTableNumber() + ".png";
 
             try {
-                QRCodeGenerator.generateQRCodeImage(qrText, qrPath, 250, 250);
+                Group5_pizza.Pizza_GoGo.util.QRCodeGenerator.generateQRCodeImage(qrText, qrPath, 250, 250);
                 table.setQrCodeUrl("/qrcodes/table-" + table.getTableNumber() + ".png");
             } catch (WriterException | IOException e) {
                 e.printStackTrace();
