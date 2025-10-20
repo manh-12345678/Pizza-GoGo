@@ -1,6 +1,0 @@
-<!-- cart.html -->
-<div th:fragment="orderListFragment(order)">
-    <div th:each="item : ${order.orderDetails}" class="order-item">
-        <span th:text="${item.product.name} + ' x' + ${item.quantity} + ' - ' + ${item.product.price} + '₫'"></span>
-    </div>
-</div>
