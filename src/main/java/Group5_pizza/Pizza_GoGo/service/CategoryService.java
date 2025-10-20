@@ -9,5 +9,5 @@ public interface CategoryService {
     List<Category> searchCategories(String keyword);
     Category getCategoryById(Integer id);
     Category saveCategory(Category category);
-    void deleteCategory(Integer id);
+    boolean deleteCategory(Integer id);
 }

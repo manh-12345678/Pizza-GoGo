@@ -66,11 +66,17 @@ public class CategoryController {
         return "redirect:/categories";
     }
 
-    @GetMapping("/delete/{id}")
-    public String deleteCategory(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
-        categoryService.deleteCategory(id);
+@GetMapping("/delete/{id}")
+public String deleteCategory(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+    boolean deleted = categoryService.deleteCategory(id);
+
+    if (deleted) {
         redirectAttributes.addFlashAttribute("success", "Category đã bị xóa!");
-        return "redirect:/categories";
+    } else {
+        redirectAttributes.addFlashAttribute("error", "Không thể xóa! Category này vẫn còn sản phẩm.");
     }
+
+    return "redirect:/categories";
+}
 }
 
