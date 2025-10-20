@@ -57,7 +57,8 @@ public class CategoryController {
 
     @PostMapping("/{id}")
     public String updateCategory(@PathVariable Integer id, @ModelAttribute Category category,
-            RedirectAttributes redirectAttributes) {
+     RedirectAttributes redirectAttributes) {
+
         category.setCategoryId(id);
         categoryService.saveCategory(category);
         redirectAttributes.addFlashAttribute("success",
