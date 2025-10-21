@@ -32,20 +32,20 @@ public class OrderController {
     private final RestaurantTableService tableService;
     private final OrderService orderService;
     private final OrderDetailService orderDetailService;
-   private final ProductService productService;
+    private final ProductService productService;
     private final SimpMessagingTemplate messagingTemplate;
     private final DTOService dtoService;
 
     public OrderController(RestaurantTableService tableService,
             OrderService orderService,
             OrderDetailService orderDetailService,
-           ProductService productService,
+            ProductService productService,
             SimpMessagingTemplate messagingTemplate,
             DTOService dtoService) {
         this.tableService = tableService;
         this.orderService = orderService;
         this.orderDetailService = orderDetailService;
-       this.productService = productService;
+        this.productService = productService;
         this.messagingTemplate = messagingTemplate;
         this.dtoService = dtoService;
     }
@@ -77,8 +77,8 @@ public class OrderController {
                                        || (p.getCategory() == null && c.equals("Uncategorized")))
                                .toList()));
 
-        model.addAttribute("table", table);
-        model.addAttribute("order", order);
+       model.addAttribute("table", table);
+       model.addAttribute("order", order);
        model.addAttribute("categories", categories);
        model.addAttribute("productsByCategory", productsByCategory);
 
@@ -94,7 +94,7 @@ public class OrderController {
             HttpSession session) {
         try {
             Order order = orderService.getOrderWithDetails(orderId);
-           Product product = productService.getProductById(productId);
+            Product product = productService.getProductById(productId);
 
             orderDetailService.addOrUpdateOrderDetail(order, null, quantity, note);
 
