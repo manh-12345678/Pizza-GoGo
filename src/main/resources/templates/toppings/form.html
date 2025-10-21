@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${topping.toppingId} == null ? 'Thêm topping mới' : 'Chỉnh sửa topping'">Form topping</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #fff;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #ff6a00;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: none;
+            margin-bottom: 10px;
+            background-color: #2e2e2e;
+            color: #fff;
+        }
+
+        button,
+        a.btn {
+            padding: 10px 15px;
+            background-color: #ff6a00;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        button:hover,
+        a.btn:hover {
+            background-color: #ff4500;
+        }
+
+        .flash-message {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 th:text="${topping.toppingId} == null ? 'Thêm topping mới' : 'Chỉnh sửa topping'"></h1>
+
+    <!-- Flash messages -->
+    <div class="flash-message">
+        <div th:if="${success}" style="color: #00ff00;" th:text="${success}"></div>
+        <div th:if="${error}" style="color: #ff3333;" th:text="${error}"></div>
+    </div>
+
+    <form th:action="${topping.toppingId} == null ? @{/toppings} : @{'/toppings/' + ${topping.toppingId}}"
+        th:object="${topping}" method="post">
+
+        <label for="name">Tên topping:</label>
+        <input type="text" id="name" th:field="*{name}" placeholder="Nhập tên topping..." required>
+
+        <label for="price">Giá:</label>
+        <input type="number" id="price" th:field="*{price}" placeholder="Nhập giá..." min="0" step="0.01" required>
+
+        <button type="submit" th:text="${topping.toppingId} == null ? 'Thêm topping' : 'Cập nhật'"></button>
+        <a th:href="@{/toppings}" class="btn">Quay lại</a>
+    </form>
+</body>
+
+</html>

@@ -5,12 +5,48 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="43f99e10-0ac3-4a92-926c-0f6a9eea971f" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/tables/orders/choose_menu.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Group5_pizza/Pizza_GoGo/controller/CategoryController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Group5_pizza/Pizza_GoGo/controller/ProductController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Group5_pizza/Pizza_GoGo/controller/ToppingController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Group5_pizza/Pizza_GoGo/repository/CategoryRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Group5_pizza/Pizza_GoGo/repository/ProductRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Group5_pizza/Pizza_GoGo/repository/ToppingRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Group5_pizza/Pizza_GoGo/service/CategoryService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Group5_pizza/Pizza_GoGo/service/ProductService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Group5_pizza/Pizza_GoGo/service/ToppingService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Group5_pizza/Pizza_GoGo/service/impl/CategoryServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Group5_pizza/Pizza_GoGo/service/impl/ProductServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Group5_pizza/Pizza_GoGo/service/impl/ToppingServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/categories/form.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/categories/list.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/orders/cart.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/orders/choose_menu.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/products/form.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/products/list.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/toppings/form.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/templates/toppings/list.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/target/Pizza-GoGo-0.0.1-SNAPSHOT.jar.original" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/target/classes/templates/categories/form.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/target/classes/templates/categories/list.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/target/classes/templates/products/form.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/target/classes/templates/products/list.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/target/maven-archiver/pom.properties" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/createdFiles.lst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/target/project-local-repo/Group5-pizza/Pizza-GoGo/0.0.1-SNAPSHOT/Pizza-GoGo-0.0.1-SNAPSHOT-consumer.pom" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/target/project-local-repo/Group5-pizza/Pizza-GoGo/0.0.1-SNAPSHOT/Pizza-GoGo-0.0.1-SNAPSHOT.pom" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/tables/form.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/tables/form.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/tables/list.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/templates/tables/list.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/templates/tables/form.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/tables/form.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/templates/tables/list.html" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/templates/tables/list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Pizza-GoGo.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Group5_pizza/Pizza_GoGo/controller/OrderController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Group5_pizza/Pizza_GoGo/controller/OrderController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/templates/tables/orders/choose_menu.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/Group5_pizza/Pizza_GoGo/PizzaGoGoApplicationTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/Group5_pizza/Pizza_GoGo/PizzaGoGoApplicationTests.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/templates/tables/orders/choose_menu.html" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,28 +99,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultHtmlFileTemplate": "HTML File",
-    "RequestMappingsPanelOrder0": "0",
-    "RequestMappingsPanelOrder1": "1",
-    "RequestMappingsPanelWidth0": "75",
-    "RequestMappingsPanelWidth1": "75",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "Spring Boot.PizzaGoGoApplication (1).executor": "Run",
-    "Spring Boot.PizzaGoGoApplication.executor": "Run",
-    "git-widget-placeholder": "TatHai",
-    "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "D:/25 - SUMMER (Semeter V)/SWP391_FALL25_ReLearn/Repo test/Pizza-GoGo",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;Spring Boot.PizzaGoGoApplication (1).executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.PizzaGoGoApplication.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Merging TatHai&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/25 - SUMMER (Semeter V)/SWP391_FALL25_ReLearn/Repo test/Pizza-GoGo&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="Spring Boot.PizzaGoGoApplication (1)">
     <configuration name="PizzaGoGoApplication (1)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="Pizza-GoGo" />
@@ -109,6 +146,9 @@
       </set>
     </attachedChunks>
   </component>
+  <component name="StructureViewState">
+    <option name="selectedTab" value="Logical" />
+  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="43f99e10-0ac3-4a92-926c-0f6a9eea971f" name="Changes" comment="" />
@@ -126,6 +166,14 @@
       <workItem from="1759329502188" duration="4010000" />
       <workItem from="1759420282256" duration="9597000" />
       <workItem from="1759797655233" duration="8109000" />
+      <workItem from="1760013558594" duration="4542000" />
+      <workItem from="1760033461231" duration="18948000" />
+      <workItem from="1760345537939" duration="10583000" />
+      <workItem from="1760512019419" duration="120000" />
+      <workItem from="1760512170695" duration="2065000" />
+      <workItem from="1760525967082" duration="13690000" />
+      <workItem from="1760969498313" duration="1046000" />
+      <workItem from="1761006598259" duration="1923000" />
     </task>
     <servers />
   </component>
