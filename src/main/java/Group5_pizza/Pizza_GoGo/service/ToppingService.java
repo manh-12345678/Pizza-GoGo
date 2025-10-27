@@ -1,14 +1,14 @@
 package Group5_pizza.Pizza_GoGo.service;
 
+import Group5_pizza.Pizza_GoGo.model.Topping;
 import java.util.List;
 
-import Group5_pizza.Pizza_GoGo.model.Topping;
-
 public interface ToppingService {
-    List<Topping> getAllToppings();
-    List<Topping> getAllAvailableToppings();
-    Topping getToppingById(Integer id);
-    Topping saveTopping(Topping topping);
-    void deleteTopping(Integer id);
-    List<Topping> searchToppings(String name);
+    List<Topping> getAll();
+    Topping getById(Integer id);
+    Topping create(Topping topping);
+    Topping update(Integer id, Topping topping);
+    void softDelete(Integer id);
+
+    List<Topping> searchByName(String name);
 }
