@@ -46,7 +46,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * ✅ Đã SỬA: Tính toán và gán lại totalAmount + orderDetails
+     * Tính toán và gán lại totalAmount + orderDetails
      */
     @Override
     @Transactional(readOnly = true) // Cần Transactional để truy cập lazy relations nếu cần
@@ -67,7 +67,7 @@ public class OrderServiceImpl implements OrderService {
                         .multiply(BigDecimal.valueOf(od.getQuantity() != null ? od.getQuantity() : 0)))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // ⭐ GÁN LẠI KẾT QUẢ VÀO ORDER
+        // GÁN LẠI KẾT QUẢ VÀO ORDER
         order.setOrderDetails(filteredDetails);
         order.setTotalAmount(total);
 
@@ -85,7 +85,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * ⭐ THÊM MỚI/ĐÃ SỬA: Phương thức "thông minh" cho Admin Dashboard
+     * THÊM MỚI/ĐÃ SỬA: Phương thức "thông minh" cho Admin Dashboard
      * Tải danh sách Order kèm chi tiết và tính toán lại.
      */
     @Override
@@ -114,7 +114,7 @@ public class OrderServiceImpl implements OrderService {
                             .multiply(BigDecimal.valueOf(od.getQuantity() != null ? od.getQuantity() : 0)))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            // ⭐ GÁN LẠI KẾT QUẢ VÀO ORDER
+            // GÁN LẠI KẾT QUẢ VÀO ORDER
             order.setOrderDetails(filteredDetails);
             order.setTotalAmount(total);
         }

@@ -25,15 +25,15 @@ public class DTOServiceImpl implements DTOService {
         OrderDTO dto = new OrderDTO();
         dto.setOrderId(order.getOrderId());
 
-        // ✅ Lấy totalAmount đã được OrderServiceImpl tính toán chính xác
+        // Lấy totalAmount đã được OrderServiceImpl tính toán chính xác
         dto.setTotalAmount(order.getTotalAmount() != null ? order.getTotalAmount() : BigDecimal.ZERO);
 
-        // ✅ Lấy các trường thông tin khác mà JS cần
+        // Lấy các trường thông tin khác mà JS cần
         dto.setTable(order.getTable() != null ? String.valueOf(order.getTable().getTableNumber()) : "Mang về");
         dto.setStatus(order.getStatus() != null ? order.getStatus().toLowerCase() : "unknown"); // JS dùng chữ thường
         dto.setTime(order.getCreatedAt() != null ? order.getCreatedAt().format(TIME_FORMATTER) : "--:--");
 
-        // ✅ Chuyển đổi OrderDetails (đã được lọc bởi ServiceImpl) sang List<OrderItemDTO>
+        // Chuyển đổi OrderDetails (đã được lọc bởi ServiceImpl) sang List<OrderItemDTO>
         if (order.getOrderDetails() != null) {
             List<OrderItemDTO> itemDTOs = order.getOrderDetails().stream()
                     .map(this::convertToOrderItemDTO) // Gọi hàm helper đã sửa
@@ -46,7 +46,7 @@ public class DTOServiceImpl implements DTOService {
     }
 
     /**
-     * ✅ ĐÃ SỬA: Chuyển đổi OrderDetail sang OrderItemDTO (khớp với JS: name, qty, price)
+     * Chuyển đổi OrderDetail sang OrderItemDTO (khớp với JS: name, qty, price)
      * Tính toán tổng tiền cho từng dòng (price = unitPrice * quantity)
      */
     private OrderItemDTO convertToOrderItemDTO(OrderDetail detail) {

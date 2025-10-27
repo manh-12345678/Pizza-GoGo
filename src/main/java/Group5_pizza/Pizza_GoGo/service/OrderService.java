@@ -16,7 +16,7 @@ public interface OrderService {
 
     List<Order> getOrdersByStatus(String status); // Lấy danh sách order cơ bản theo status
 
-    // ⭐ THÊM MỚI: Phương thức lấy danh sách order kèm chi tiết cho Admin
+    // Phương thức lấy danh sách order kèm chi tiết cho Admin
     List<Order> getOrdersByStatusWithDetails(String status);
 
     boolean updateOrderStatus(Integer orderId, String status);

@@ -31,7 +31,7 @@ public class OrderManagementController {
     @GetMapping("/list")
     @ResponseBody
     public List<OrderDTO> getOrdersAjax(@RequestParam(required = false) String status) {
-        // ⭐ Gọi service mới để lấy đầy đủ chi tiết
+        // Gọi service mới để lấy đầy đủ chi tiết
         List<Order> orders = orderService.getOrdersByStatusWithDetails(status);
         return orders.stream()
                 .map(dtoService::convertToOrderDTO)
@@ -44,7 +44,7 @@ public class OrderManagementController {
                                     @RequestParam String status) {
         boolean success = orderService.updateOrderStatus(orderId, status.toUpperCase());
         if (success) {
-            // ⭐ Lấy lại Order VỚI ĐẦY ĐỦ CHI TIẾT
+            // Lấy lại Order VỚI ĐẦY ĐỦ CHI TIẾT
             Order updatedOrder = orderService.getOrderWithDetails(orderId);
             OrderDTO dto = dtoService.convertToOrderDTO(updatedOrder);
             messagingTemplate.convertAndSend("/topic/orders/update", dto);
