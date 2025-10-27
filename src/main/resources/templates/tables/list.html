@@ -1,20 +1,130 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head><title>Restaurant Tables</title></head>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Danh sách bàn</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #fff;
+            margin: 20px;
+        }
+
+        h1 {
+            color: #ff6a00;
+        }
+
+        a,
+        button {
+            text-decoration: none;
+            color: #fff;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            background-color: #ff6a00;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #ff4500;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #2e2e2e;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border: 1px solid #444;
+            text-align: left;
+        }
+
+        th {
+            background-color: #ff6a00;
+            color: #fff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #3a3a3a;
+        }
+
+        tr:hover {
+            background-color: #444;
+        }
+
+        .flash-message {
+            margin-top: 10px;
+        }
+
+        .add-btn {
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        img.qr-code {
+            width: 100px;
+            border: 1px solid #555;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
 <body>
-<h1>Danh sách bàn</h1>
-<a th:href="@{/tables/new}">➕ Thêm bàn</a>
-<table border="1">
-    <tr><th>ID</th><th>Số bàn</th><th>Trạng thái</th><th>Hành động</th></tr>
-    <tr th:each="t : ${tables}">
-        <td th:text="${t.tableId}"></td>
-        <td th:text="${t.tableNumber}"></td>
-        <td th:text="${t.status}"></td>
-        <td>
-            <a th:href="@{'/tables/edit/' + ${t.tableId}}">✏️</a>
-            <a th:href="@{'/tables/delete/' + ${t.tableId}}">🗑️</a>
-        </td>
-    </tr>
-</table>
+    <h1>Danh sách bàn</h1>
+
+    <!-- Flash messages -->
+    <div class="flash-message">
+        <div th:if="${success}" style="color: #00ff00;" th:text="${success}"></div>
+        <div th:if="${error}" style="color: #ff3333;" th:text="${error}"></div>
+    </div>
+
+    <a th:href="@{/tables/new}" class="btn add-btn">+ Thêm bàn mới</a>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tên bàn</th>
+                <th>Số bàn</th>
+                <th>Sức chứa</th>
+                <th>Trạng thái</th>
+                <th>QR Code</th>
+                <th>Hành động</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="table : ${tables}">
+                <td th:text="${table.tableId}"></td>
+                <td th:text="${table.tableName}"></td>
+                <td th:text="${table.tableNumber}"></td>
+                <td th:text="${table.capacity}"></td>
+                <td th:text="${table.status}"></td>
+                <td>
+                    <img th:if="${table.qrCodeUrl != null}" th:src="${table.qrCodeUrl}" alt="QR Code" class="qr-code" />
+                    <span th:if="${table.qrCodeUrl == null}">Chưa có</span>
+                </td>
+
+                <td>
+                    <a th:href="@{'/tables/edit/' + ${table.tableId}}" class="btn">Sửa</a>
+                    <a th:href="@{'/tables/delete/' + ${table.tableId}}" class="btn"
+                        onclick="return confirm('Bạn có chắc muốn xóa bàn này?')">Xóa</a>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(tables)}">
+                <td colspan="7" style="text-align:center;">Không có bàn nào</td>
+            </tr>
+        </tbody>
+    </table>
 </body>
+
 </html>

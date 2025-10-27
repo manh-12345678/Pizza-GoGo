@@ -1,10 +1,10 @@
 package Group5_pizza.Pizza_GoGo.repository;
 
-import Group5_pizza.Pizza_GoGo.model.Product;
-
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import Group5_pizza.Pizza_GoGo.model.Product;
 
 public interface ProductRepository extends JpaRepository<Product, Integer> {
 
@@ -14,4 +14,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     List<Product> findByIsDeletedFalse();
 
     List<Product> findByNameContainingIgnoreCaseAndCategory_CategoryId(String name, Integer categoryId);
+
+    long countByCategory_CategoryId(Integer categoryId);
+
 }

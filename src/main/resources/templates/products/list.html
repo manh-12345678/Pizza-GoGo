@@ -1,138 +1,127 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
-    <title>Quản lý món pizza</title>
+    <title>Danh sách món pizza</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
         body {
-            font-family: "Segoe UI", Arial, sans-serif;
-            background-color: #1a1a1a;
+            background-color: #1e1e1e;
             color: #fff;
-            margin: 0;
-            padding: 30px;
+            font-family: Arial, sans-serif;
+            margin: 20px;
         }
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            background: #2b2b2b;
-            border-radius: 12px;
-            padding: 30px 40px;
-            box-shadow: 0 0 15px rgba(255, 106, 0, 0.3);
-        }
+
         h1 {
             color: #ff6a00;
-            text-align: center;
-            margin-bottom: 25px;
         }
-        .search-form {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 25px;
-        }
-        .search-form input, .search-form select {
-            padding: 10px;
-            border-radius: 6px;
-            border: none;
-            background-color: #3a3a3a;
-            color: #fff;
-            width: 220px;
-        }
-        .btn {
-            padding: 10px 16px;
-            background-color: #ff6a00;
-            color: #fff;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            text-decoration: none;
-            font-weight: 600;
-            transition: 0.3s;
-        }
-        .btn:hover {
-            background-color: #ff4500;
-            transform: translateY(-2px);
-        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 15px;
         }
+
         th, td {
-            padding: 12px 10px;
             border: 1px solid #444;
+            padding: 8px;
             text-align: left;
         }
+
         th {
             background-color: #ff6a00;
             color: #fff;
-            text-transform: uppercase;
         }
+
         tr:nth-child(even) {
-            background-color: #3a3a3a;
+            background-color: #2e2e2e;
         }
-        td a.btn {
-            padding: 6px 12px;
-            font-size: 14px;
+
+        a.btn, button.btn {
+            padding: 5px 10px;
+            background-color: #ff6a00;
+            color: #fff;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-right: 5px;
+            border: none;
+            cursor: pointer;
         }
+
+        a.btn:hover, button.btn:hover {
+            background-color: #ff4500;
+        }
+
         .flash-message {
-            padding: 10px;
-            border-radius: 6px;
-            text-align: center;
-            font-weight: 500;
+            margin-top: 10px;
+        }
+
+        .search-form {
             margin-bottom: 15px;
         }
-        .success { background-color: #28a745; }
-        .error { background-color: #dc3545; }
+
+        .search-form input, .search-form select {
+            padding: 8px;
+            background-color: #2e2e2e;
+            color: #fff;
+            border-radius: 5px;
+            border: none;
+            margin-right: 5px;
+        }
     </style>
 </head>
+
 <body>
-<div class="container">
-    <h1>Quản lý món pizza</h1>
+<h1>Danh sách món pizza</h1>
 
-    <div th:if="${success}" class="flash-message success" th:text="${success}"></div>
-    <div th:if="${error}" class="flash-message error" th:text="${error}"></div>
-
-    <form th:action="@{/products}" method="get" class="search-form">
-        <input type="text" name="name" placeholder="Tìm theo tên..." th:value="${searchName}">
-        <select name="categoryId">
-            <option value="">-- Chọn loại --</option>
-            <option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.categoryName}"
-                    th:selected="${searchCategoryId != null && cat.categoryId == searchCategoryId}"></option>
-        </select>
-        <button type="submit" class="btn">Tìm kiếm</button>
-        <a th:href="@{/products/new}" class="btn" style="margin-left:auto;">+ Thêm món mới</a>
-    </form>
-
-    <table>
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Tên món</th>
-            <th>Loại</th>
-            <th>Giá</th>
-            <th>Số lượng / ngày</th>
-            <th>Hành động</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="product : ${products}" th:if="${!product.isDeleted}">
-            <td th:text="${product.productId}"></td>
-            <td th:text="${product.name}"></td>
-            <td th:text="${product.category.categoryName}"></td>
-            <td th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')} + ' đ'"></td>
-            <td th:text="${product.quantityPerDay}"></td>
-            <td>
-                <a th:href="@{'/products/edit/' + ${product.productId}}" class="btn">Sửa</a>
-                <a th:href="@{'/products/delete/' + ${product.productId}}" class="btn"
-                   onclick="return confirm('Bạn có chắc muốn xóa món này?')">Xóa</a>
-            </td>
-        </tr>
-        <tr th:if="${#lists.isEmpty(products) or #lists.size(products.?[isDeleted == false]) == 0}">
-            <td colspan="6" style="text-align:center;">Không có món nào</td>
-        </tr>
-        </tbody>
-    </table>
+<div class="flash-message">
+    <div th:if="${success}" style="color: #00ff00;" th:text="${success}"></div>
+    <div th:if="${error}" style="color: #ff3333;" th:text="${error}"></div>
 </div>
+
+<a th:href="@{/products/new}" class="btn">+ Thêm món mới</a>
+
+<form th:action="@{/products}" method="get" class="search-form">
+    <input type="text" name="name" th:value="${searchName}" placeholder="Tìm theo tên món...">
+    <select name="categoryId">
+        <option value="">-- Chọn loại --</option>
+        <option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.categoryName}"
+                th:selected="${searchCategoryId != null && cat.categoryId == searchCategoryId}"></option>
+    </select>
+    <button type="submit" class="btn">Tìm kiếm</button>
+</form>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Tên món</th>
+        <th>Loại</th>
+        <th>Giá (VNĐ)</th>
+        <th>Số lượng/ngày</th>
+        <th>Mô tả</th>
+        <th>Hành động</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="product : ${products}" th:if="${!product.isDeleted}">
+        <td th:text="${product.productId}"></td>
+        <td th:text="${product.name}"></td>
+        <td th:text="${product.category.categoryName}"></td>
+        <td th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')} + ' đ'"></td>
+        <td th:text="${product.quantityPerDay}"></td>
+        <td th:text="${product.description}"></td>
+        <td>
+            <a th:href="@{'/products/edit/' + ${product.productId}}" class="btn">Sửa</a>
+            <a th:href="@{'/products/delete/' + ${product.productId}}"
+               onclick="return confirm('Bạn có chắc muốn xóa món này?')" class="btn">Xóa</a>
+        </td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(products)}">
+        <td colspan="7" style="text-align:center;">Không có món nào</td>
+    </tr>
+    </tbody>
+</table>
 </body>
 </html>

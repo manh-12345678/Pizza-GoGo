@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang cá nhân - Pizza GoGo</title>
+
+    <style>
+        body {
+            background-color: #1a1a1a;
+            font-family: 'Poppins', sans-serif;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #ff6600;
+            padding: 15px 0;
+            text-align: center;
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .container {
+            width: 80%;
+            margin: 30px auto;
+            background: #2c2c2c;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 15px rgba(255, 102, 0, 0.4);
+        }
+
+        h2 {
+            color: #ff6600;
+            border-bottom: 2px solid #ff6600;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+        }
+
+        form {
+            margin-bottom: 40px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffcc99;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            border: none;
+            outline: none;
+            background-color: #3a3a3a;
+            color: #fff;
+        }
+
+        input:focus {
+            border: 1px solid #ff6600;
+        }
+
+        button {
+            background-color: #ff6600;
+            border: none;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #ff8533;
+            transform: translateY(-2px);
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .message.success {
+            background-color: rgba(0, 200, 83, 0.2);
+            border: 1px solid #00e676;
+            color: #00e676;
+        }
+
+        .message.error {
+            background-color: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff5252;
+            color: #ff5252;
+        }
+
+        .form-section {
+            margin-bottom: 50px;
+        }
+
+        .logout {
+            display: block;
+            text-align: right;
+            color: #ff6600;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .logout:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #ccc;
+            font-size: 14px;
+            border-top: 1px solid #333;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    🍕 Pizza GoGo - Trang Cá Nhân
+</header>
+
+<div class="container">
+
+    <a th:href="@{/logout}" class="logout">Đăng xuất</a>
+
+    <!-- Thông báo -->
+    <div th:if="${message}" class="message success" th:text="${message}"></div>
+    <div th:if="${error}" class="message error" th:text="${error}"></div>
+
+    <!-- Cập nhật thông tin -->
+    <div class="form-section">
+        <h2>Thông tin cá nhân</h2>
+        <form th:action="@{/profile/update}" th:object="${account}" method="post">
+            <label>Họ và tên</label>
+            <input type="text" th:field="*{fullName}" placeholder="Nhập họ và tên" required />
+
+            <label>Email (không thể thay đổi)</label>
+            <input type="text" th:value="*{username}" readonly />
+            <label>Tên đăng nhập</label>
+            <input type="text" th:value="*{username}" readonly />
+            <!-- <label>Số điện thoại</label>
+            <input type="text" th:field="*{phone}" placeholder="Nhập số điện thoại" /> --> -->
+<!-- 
+            <label>Địa chỉ</label>
+            <input type="text" th:field="*{address}" placeholder="Nhập địa chỉ" /> -->
+
+            <button type="submit">Cập nhật thông tin</button>
+        </form>
+    </div>
+
+    <!-- Đổi mật khẩu -->
+    <div class="form-section">
+        <h2>Đổi mật khẩu</h2>
+        <form th:action="@{/profile/change-password}" method="post">
+            <label>Mật khẩu hiện tại</label>
+            <input type="password" name="currentPassword" placeholder="Nhập mật khẩu hiện tại" required />
+
+            <label>Mật khẩu mới</label>
+            <input type="password" name="newPassword" placeholder="Nhập mật khẩu mới" required />
+
+            <button type="submit">Đổi mật khẩu</button>
+        </form>
+    </div>
+</div>
+
+<footer>
+    © 2025 Pizza GoGo Team — Hương vị tuyệt hảo, đậm đà sắc màu Việt 🍕
+</footer>
+
+</body>
+</html>

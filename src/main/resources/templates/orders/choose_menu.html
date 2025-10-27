@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Pizza Menu - Bàn [[${table.tableNumber}]]</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        /* CSS của bạn giữ nguyên */
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #121212;
+            color: #fff;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+            color: #ff6a00;
+            margin-bottom: 20px;
+            font-size: 2.2em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .category-navbar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .category-navbar button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: #1f1f1f;
+            color: #fff;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .category-navbar button.active,
+        .category-navbar button:hover {
+            background: #ff6a00;
+            color: #fff;
+        }
+
+        .category-section {
+            display: none;
+            margin-bottom: 40px;
+        }
+
+        .category-section.active {
+            display: block;
+        }
+
+        h2 {
+            color: #ff6a00;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ff6a00;
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 16px;
+            background: #1f1f1f;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(255, 106, 0, 0.4);
+        }
+
+        .product-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .product-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .price {
+            color: #ffb84d;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .desc {
+            font-size: 0.9em;
+            color: #ccc;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .toppings,
+        .notes {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background: #2e2e2e;
+            color: #fff;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            background: #ff6a00;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #fff;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #ff4500;
+        }
+
+        .order-items {
+            margin-top: 40px;
+            padding: 20px;
+            border-radius: 12px;
+            background: #1c1c1c;
+            border: 1px solid #333;
+        }
+
+        .order-items h2 {
+            margin-bottom: 15px;
+        }
+
+        .order-item {
+            border-bottom: 1px solid #333;
+            padding: 8px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .empty-message {
+            font-style: italic;
+            color: #aaa;
+        }
+    </style>
+</head>
+
+<body>
+<h1>🍕 Menu Pizza - Bàn <span th:text="${table.tableNumber}"></span></h1>
+
+<div class="category-navbar">
+    <button th:each="categoryName, iterStat : ${categories}"
+            th:text="${categoryName}"
+            th:classappend="${iterStat.first} ? 'active'"
+            th:data-category="${categoryName}"
+            onclick="showCategory(this, event)">
+    </button>
+</div>
+
+<div th:each="categoryName, iterStat : ${categories}"
+     class="category-section"
+     th:classappend="${iterStat.first} ? 'active'"
+     th:id="'category-' + ${categoryName}">
+
+    <h2 th:text="${categoryName}"></h2>
+
+    <div th:with="products=${productsByCategory[__${categoryName}__]}">
+
+        <div th:if="${products != null and !#lists.isEmpty(products)}" class="products-grid">
+            <div th:each="product : ${products}" class="product-card">
+                <img class="product-img" th:src="@{https://via.placeholder.com/200x150.png?text=Pizza}"
+                     alt="Product Image">
+                <div class="product-name" th:text="${product.name}"></div>
+
+                <div class="price" th:text="${product.price} + ' ₫'"></div>
+                <div class="desc" th:text="${product.description}"></div>
+
+                <select class="toppings" th:id="'topping-' + ${product.productId}">
+                    <option value="">Không thêm topping</option>
+                    <th:block th:if="${product.productToppings != null and !product.productToppings.isEmpty()}">
+                        <option th:each="productTopping : ${product.productToppings}"
+                                th:if="${productTopping.topping != null and (productTopping.topping.isDeleted == null or !productTopping.topping.isDeleted)}"
+                                th:value="${productTopping.topping.name}"
+                                th:text="${productTopping.topping.name} + ' (+' + ${productTopping.topping.price} + '₫)'">
+                        </option>
+                    </th:block>
+                </select>
+
+                <input class="notes" type="text" placeholder="Ghi chú thêm..." th:id="'note-' + ${product.productId}">
+
+                <label>Số lượng:</label>
+                <input type="number" min="1" value="1" th:id="'qty-' + ${product.productId}">
+
+                <button class="btn" th:data-product-id="${product.productId}" onclick="addToOrder(this)">Thêm</button>
+            </div>
+        </div>
+
+        <div th:if="${products == null or #lists.isEmpty(products)}">
+            <p>Không có sản phẩm</p>
+        </div>
+    </div>
+</div>
+
+<div class="order-items">
+    <h2>🛒 Đơn hàng hiện tại</h2>
+    <div id="order-list" th:replace="~{orders/cart :: orderListFragment(order=${order})}">
+        <div th:each="item : ${order.orderDetails}"
+             th:if="${item.isDeleted == null or !item.isDeleted}"
+             class="order-item">
+            <span th:text="${item.product.name} + ' x' + ${item.quantity} + ' - ' + ${item.product.price} + '₫'"></span>
+        </div>
+        <div th:if="${order.orderDetails == null or #lists.isEmpty(order.orderDetails.?[isDeleted == null or !isDeleted])}">
+            <p class="empty-message">Giỏ hàng của bạn đang trống.</p>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var tableId = [[${ table.tableId }]];
+    var orderId = [[${ order.orderId }]];
+    var stompClient = null;
+
+    function connect() {
+        var socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/topic/orders/' + tableId, function (message) {
+                loadOrder();
+            });
+        });
+    }
+
+    // Hàm 'addToOrder' (gộp topping vào note)
+    function addToOrder(btnElement) {
+        var productId = btnElement.getAttribute('data-product-id');
+        var qty = document.getElementById('qty-' + productId).value;
+
+        var toppingSelect = document.getElementById('topping-' + productId);
+        var selectedToppingValue = toppingSelect.value; // Tên của topping
+        var noteInput = document.getElementById('note-' + productId).value.trim();
+
+        // Gộp topping (nếu có) và note lại
+        var finalNote = noteInput;
+        if (selectedToppingValue) {
+            finalNote = '[' + selectedToppingValue + '] ' + noteInput;
+        }
+
+        fetch('/orders/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                orderId: orderId,
+                productId: productId,
+                quantity: qty,
+                note: finalNote // Gửi ghi chú đã gộp
+            })
+        }).then(res => res.text()).then(data => {
+            if (data !== 'success') alert('Thêm món lỗi!');
+        });
+    }
+
+    function loadOrder() {
+        fetch('/orders/cart/' + orderId)
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById('order-list').innerHTML = html;
+            });
+    }
+
+    // Hàm 'showCategory' (Đã fix lỗi bảo mật)
+    function showCategory(btnElement, event) {
+        var cat = btnElement.getAttribute('data-category');
+        document.querySelectorAll('.category-section').forEach(sec => sec.classList.remove('active'));
+        document.querySelectorAll('.category-navbar button').forEach(btn => btn.classList.remove('active'));
+
+        var section = document.getElementById('category-' + cat);
+        if (section) {
+            section.classList.add('active');
+        }
+        btnElement.classList.add('active');
+    }
+
+    connect();
+    /*]]>*/
+</script>
+
+</body>
+</html>

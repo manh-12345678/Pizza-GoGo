@@ -9,25 +9,29 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import Group5_pizza.Pizza_GoGo.model.Category;
-import Group5_pizza.Pizza_GoGo.repository.CategoryRepository;
+import Group5_pizza.Pizza_GoGo.service.CategoryService;
 
 @Controller
 @RequestMapping("/categories")
 public class CategoryController {
 
-    private final CategoryRepository categoryRepository;
+    private final CategoryService categoryService;
 
-    public CategoryController(CategoryRepository categoryRepository) {
-        this.categoryRepository = categoryRepository;
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
     }
 
     @GetMapping
-    public String listCategories(Model model) {
-        List<Category> categories = categoryRepository.findAll();
+    public String listCategories(@RequestParam(value = "keyword", required = false) String keyword, Model model) {
+        List<Category> categories = (keyword != null && !keyword.isEmpty())
+                ? categoryService.searchCategories(keyword)
+                : categoryService.getAllCategories();
         model.addAttribute("categories", categories);
+        model.addAttribute("keyword", keyword);
         return "categories/list";
     }
 
@@ -39,14 +43,14 @@ public class CategoryController {
 
     @PostMapping
     public String createCategory(@ModelAttribute Category category, RedirectAttributes redirectAttributes) {
-        categoryRepository.save(category);
+        categoryService.saveCategory(category);
         redirectAttributes.addFlashAttribute("success", "Category '" + category.getCategoryName() + "' đã được tạo!");
         return "redirect:/categories";
     }
 
     @GetMapping("/edit/{id}")
     public String showEditForm(@PathVariable Integer id, Model model) {
-        Category category = categoryRepository.findById(id).orElse(null);
+        Category category = categoryService.getCategoryById(id);
         model.addAttribute("category", category);
         return "categories/form";
     }
@@ -56,17 +60,23 @@ public class CategoryController {
      RedirectAttributes redirectAttributes) {
 
         category.setCategoryId(id);
-        categoryRepository.save(category);
+        categoryService.saveCategory(category);
         redirectAttributes.addFlashAttribute("success",
                 "Category '" + category.getCategoryName() + "' đã được cập nhật!");
         return "redirect:/categories";
     }
 
-    @GetMapping("/delete/{id}")
-    public String deleteCategory(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
-        categoryRepository.deleteById(id);
+@GetMapping("/delete/{id}")
+public String deleteCategory(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+    boolean deleted = categoryService.deleteCategory(id);
+
+    if (deleted) {
         redirectAttributes.addFlashAttribute("success", "Category đã bị xóa!");
-        return "redirect:/categories";
+    } else {
+        redirectAttributes.addFlashAttribute("error", "Không thể xóa! Category này vẫn còn sản phẩm.");
     }
+
+    return "redirect:/categories";
+}
 }
 
