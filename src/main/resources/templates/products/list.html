@@ -2,36 +2,79 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title th:text="${topping.toppingId == null} ? 'Thêm topping mới' : 'Chỉnh sửa topping'">Form topping</title>
+    <title>Quản lý món pizza</title>
     <style>
-        /* ... CSS giữ nguyên ... */
-        body { font-family: Arial, sans-serif; background-color: #1e1e1e; color: #fff; margin: 20px; }
-        .container { max-width: 600px; margin: auto; padding: 20px; background-color: #2e2e2e; border-radius: 8px; }
+        body { font-family: Arial, sans-serif; background-color: #1e1e1e; color: #fff; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; padding: 20px; background-color: #2e2e2e; border-radius: 8px; }
         h1 { color: #ff6a00; text-align: center; }
-        label { display: block; margin-top: 15px; margin-bottom: 5px; }
-        input { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #444; margin-bottom: 10px; background-color: #3a3a3a; color: #fff; box-sizing: border-box; }
-        button, a.btn { padding: 10px 15px; background-color: #ff6a00; border: none; border-radius: 5px; cursor: pointer; color: #fff; text-decoration: none; margin-top: 20px; }
-        button:hover, a.btn:hover { background-color: #ff4500; }
+        a, button { text-decoration: none; color: #fff; }
+        .btn { padding: 8px 15px; background-color: #ff6a00; border: none; border-radius: 5px; cursor: pointer; display: inline-block; }
+        .btn:hover { background-color: #ff4500; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; border: 1px solid #444; text-align: left; vertical-align: middle; }
+        th { background-color: #ff6a00; color: #fff; }
+        tr:nth-child(even) { background-color: #3a3a3a; }
+        .search-form { margin-top: 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .search-form input, .search-form select { padding: 8px; border-radius: 5px; border: none; background-color: #3a3a3a; color: #fff; }
+        .flash-message { margin-bottom: 15px; padding: 10px; border-radius: 5px; text-align: center; }
+        .success { background-color: #28a745; }
+        .error { background-color: #dc3545; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1 th:text="${topping.toppingId == null} ? 'Thêm topping mới' : 'Chỉnh sửa topping'"></h1>
+    <h1>Quản lý món pizza</h1>
 
-    <form th:action="${topping.toppingId == null} ? @{/toppings} : @{/toppings/{id}(id=${topping.toppingId})}"
-          th:object="${topping}" method="post">
+    <div th:if="${success}" class="flash-message success" th:text="${success}"></div>
+    <div th:if="${error}" class="flash-message error" th:text="${error}"></div>
 
-        <input type="hidden" th:if="${topping.toppingId != null}" th:field="*{toppingId}" />
-
-        <label for="name">Tên topping:</label>
-        <input type="text" id="name" th:field="*{name}" placeholder="Nhập tên topping..." required>
-
-        <label for="price">Giá:</label>
-        <input type="number" id="price" th:field="*{price}" placeholder="Nhập giá..." min="0" step="1000" required>
-
-        <button type="submit" th:text="${topping.toppingId == null} ? 'Thêm topping' : 'Cập nhật'"></button>
-        <a th:href="@{/toppings}" class="btn">Quay lại</a>
+    <form th:action="@{/products}" method="get" class="search-form">
+        <input type="text" name="name" placeholder="Tìm kiếm theo tên..." th:value="${searchName}">
+        <select name="categoryId">
+            <option value="">-- Chọn loại --</option>
+            <option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.categoryName}"
+                    th:selected="${searchCategoryId != null && cat.categoryId == searchCategoryId}"></option>
+        </select>
+        <button type="submit" class="btn">Tìm kiếm</button>
+        <a th:href="@{/products/new}" class="btn" style="margin-left: auto;">+ Thêm món mới</a>
     </form>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Hình ảnh</th>
+            <th>Tên món</th>
+            <th>Loại</th>
+            <th>Giá</th>
+            <th>Số lượng / ngày</th>
+            <th>Hành động</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="product : ${products}" th:if="${!product.isDeleted}">
+            <td th:text="${product.productId}"></td>
+            <td>
+                <img th:if="${product.imgUrl != null && !product.imgUrl.isEmpty()}"
+                     th:src="${product.imgUrl}" alt="Product Image" width="80" height="80"
+                     style="object-fit: cover; border-radius: 5px;">
+                <span th:unless="${product.imgUrl != null && !product.imgUrl.isEmpty()}">Không có ảnh</span>
+            </td>
+            <td th:text="${product.name}"></td>
+            <td th:text="${product.category.categoryName}"></td>
+            <td th:text="${#numbers.formatInteger(product.price, 0, 'COMMA')} + ' đ'"></td>
+            <td th:text="${product.quantityPerDay}"></td>
+            <td>
+                <a th:href="@{'/products/edit/' + ${product.productId}}" class="btn">Sửa</a>
+                <a th:href="@{'/products/delete/' + ${product.productId}}" class="btn"
+                   onclick="return confirm('Bạn có chắc muốn xóa món này?')">Xóa</a>
+            </td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(products) or #lists.size(products.?[isDeleted == false]) == 0}">
+            <td colspan="7" style="text-align:center;">Không có món nào</td>
+        </tr>
+        </tbody>
+    </table>
 </div>
 </body>
 </html>
