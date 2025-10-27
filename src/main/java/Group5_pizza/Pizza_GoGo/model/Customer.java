@@ -1,9 +1,10 @@
 package Group5_pizza.Pizza_GoGo.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.List; // Import này có thể xóa nếu không dùng List ở đâu khác trong file này
 
 @Entity
 @Table(name = "Customers")
@@ -25,21 +26,39 @@ public class Customer {
     @Column(name = "Email", length = 100)
     private String email;
 
-    @Column(name = "Points", columnDefinition = "INT DEFAULT 0")
-    private Integer points;
+    @Column(name = "Points", nullable = false)
+    private Integer points = 0;
 
-    @Column(name = "CreatedAt", columnDefinition = "DATETIME DEFAULT GETDATE()")
-    private LocalDateTime createdAt;
+    @Column(name = "CreatedAt", nullable = false, updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "IsDeleted", nullable = false)
+    private Boolean isDeleted = false;
 
     @Column(name = "UpdatedAt")
     private LocalDateTime updatedAt;
 
-    @Column(name = "IsDeleted", columnDefinition = "BIT DEFAULT 0")
-    private Boolean isDeleted;
-
-    @OneToMany(mappedBy = "customer")
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @JsonManagedReference
     private List<Order> orders;
 
-    @OneToMany(mappedBy = "customer")
-    private List<Review> reviews;
+    @OneToOne(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @JsonManagedReference
+    private Account account;
+
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+        if (points == null) points = 0;
+        if (isDeleted == null) isDeleted = false;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }
