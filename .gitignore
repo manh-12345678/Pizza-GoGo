@@ -37,3 +37,6 @@ target/
 
 static/qr_codes/*.png
 static/qrcodes/*.png
+.idea
+
+/resources/application.properties

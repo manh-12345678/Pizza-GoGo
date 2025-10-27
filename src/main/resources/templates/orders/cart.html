@@ -1,0 +1,15 @@
+<!-- cart.html -->
+<div th:fragment="orderListFragment(order)">
+
+    <div th:each="item : ${order.orderDetails}"
+         th:if="${item.isDeleted == null or !item.isDeleted}"
+         class="order-item">
+
+        <span th:text="${item.product.name} + ' x' + ${item.quantity} + ' - ' + ${item.product.price} + '₫'"></span>
+    </div>
+
+    <div th:if="${order.orderDetails == null or #lists.isEmpty(order.orderDetails.?[isDeleted == null or !isDeleted])}">
+        <p class="empty-message" style="color: #aaa; font-style: italic;">Giỏ hàng của bạn đang trống.</p>
+    </div>
+
+</div>
