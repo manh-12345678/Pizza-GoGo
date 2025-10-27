@@ -69,7 +69,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getOrderByStatus(String status) {
+    public List<Order> getOrdersByStatus(String status) {
         if (status == null || status.isEmpty()) {
             return orderRepository.findAll();
         }

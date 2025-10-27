@@ -14,7 +14,7 @@ public interface OrderService {
 
     Order getOrderWithDetails(Integer orderId);
 
-    List<Order> getOrderByStatus(String status);
+    List<Order> getOrdersByStatus(String status);
 
     boolean updateOrderStatus(Integer orderId, String status);
 
