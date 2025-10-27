@@ -68,26 +68,34 @@
 
     <a th:href="@{/categories/new}" class="btn">+ Thêm Category mới</a>
 
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Tên Category</th>
-                <th>Hành động</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="cat : ${categories}">
-                <td th:text="${cat.categoryId}"></td>
-                <td th:text="${cat.categoryName}"></td>
-                <td>
-                    <a th:href="@{'/categories/edit/' + ${cat.categoryId}}" class="btn">Sửa</a>
-                    <a th:href="@{'/categories/delete/' + ${cat.categoryId}}"
-                        onclick="return confirm('Bạn có chắc muốn xóa category này?')" class="btn">Xóa</a>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+<form th:action="@{/categories}" method="get">
+    <input type="text" name="keyword" th:value="${keyword}" placeholder="Tìm kiếm theo tên category..." />
+    <button type="submit">Tìm kiếm</button>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Tên Category</th>
+            <th>Mô tả</th>
+            <th>Hành động</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr th:each="cat : ${categories}">
+            <td th:text="${cat.categoryId}"></td>
+            <td th:text="${cat.categoryName}"></td>
+            <td th:text="${cat.description}"></td>
+            <td>
+                <a th:href="@{'/categories/edit/' + ${cat.categoryId}}" class="btn">Sửa</a>
+                <a th:href="@{'/categories/delete/' + ${cat.categoryId}}"
+                   onclick="return confirm('Bạn có chắc muốn xóa category này?')" class="btn">Xóa</a>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
 </body>
 
 </html>

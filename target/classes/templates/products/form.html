@@ -3,13 +3,13 @@
 
 <head>
     <meta charset="UTF-8">
-    <title th:text="${product.productId} == null ? 'Thêm món mới' : 'Chỉnh sửa món'">Form món pizza</title>
+    <title th:text="${product.productId} == null ? 'Thêm món mới' : 'Chỉnh sửa món'">Form Product</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
         body {
-            font-family: Arial, sans-serif;
             background-color: #1e1e1e;
             color: #fff;
+            font-family: Arial, sans-serif;
             margin: 20px;
         }
 
@@ -23,20 +23,22 @@
             margin-bottom: 5px;
         }
 
-        input,
-        select,
-        textarea {
+        input, select, textarea {
             width: 100%;
             padding: 8px;
             border-radius: 5px;
             border: none;
-            margin-bottom: 10px;
             background-color: #2e2e2e;
             color: #fff;
+            margin-bottom: 10px;
         }
 
-        button,
-        a.btn {
+        textarea {
+            resize: none;
+            height: 80px;
+        }
+
+        button, a.btn {
             padding: 10px 15px;
             background-color: #ff6a00;
             border: none;
@@ -46,8 +48,7 @@
             text-decoration: none;
         }
 
-        button:hover,
-        a.btn:hover {
+        button:hover, a.btn:hover {
             background-color: #ff4500;
         }
 
@@ -60,7 +61,6 @@
 <body>
 <h1 th:text="${product.productId} == null ? 'Thêm món mới' : 'Chỉnh sửa món'"></h1>
 
-<!-- Flash messages -->
 <div class="flash-message">
     <div th:if="${success}" style="color: #00ff00;" th:text="${success}"></div>
     <div th:if="${error}" style="color: #ff3333;" th:text="${error}"></div>
@@ -70,29 +70,25 @@
       th:object="${product}" method="post">
 
     <label for="name">Tên món:</label>
-    <input type="text" id="name" th:field="*{name}" placeholder="Nhập tên món..." required>
+    <input type="text" id="name" th:field="*{name}" placeholder="Nhập tên món pizza..." required>
 
     <label for="category">Loại món:</label>
-    <select id="category" th:field="*{category}" required>
+    <select id="category" th:field="*{category.categoryId}" required>
         <option value="">-- Chọn loại --</option>
-        <option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.categoryName}"
-                th:selected="${product.category != null} ? ${cat.categoryId} == ${product.category.categoryId} : false">
-        </option>
+        <option th:each="cat : ${categories}" th:value="${cat.categoryId}" th:text="${cat.categoryName}"></option>
     </select>
 
-    <label for="price">Giá:</label>
-    <input type="number" id="price" th:field="*{price}" placeholder="Nhập giá..." min="0" step="0.01" required>
+    <label for="price">Giá (VNĐ):</label>
+    <input type="number" id="price" th:field="*{price}" placeholder="Nhập giá món..." min="0" step="1000" required>
 
     <label for="quantityPerDay">Số lượng / ngày:</label>
-    <input type="number" id="quantityPerDay" th:field="*{quantityPerDay}" placeholder="Nhập số lượng..." min="0"
-           required>
+    <input type="number" id="quantityPerDay" th:field="*{quantityPerDay}" placeholder="Nhập số lượng tối đa..." min="0" required>
 
     <label for="description">Mô tả:</label>
-    <textarea id="description" th:field="*{description}" rows="4" placeholder="Nhập mô tả món..."></textarea>
+    <textarea id="description" th:field="*{description}" placeholder="Nhập mô tả món pizza..."></textarea>
 
-    <button type="submit" th:text="${product.productId} == null ? 'Thêm món' : 'Cập nhật'"></button>
+    <button type="submit" th:text="${product.productId} == null ? 'Thêm' : 'Cập nhật'"></button>
     <a th:href="@{/products}" class="btn">Quay lại</a>
 </form>
 </body>
-
 </html>
