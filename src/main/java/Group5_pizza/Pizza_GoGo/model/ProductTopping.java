@@ -1,5 +1,6 @@
 package Group5_pizza.Pizza_GoGo.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,15 +17,13 @@ public class ProductTopping {
 
     @ManyToOne
     @JoinColumn(name = "ProductId", nullable = false)
+    @ToString.Exclude
+    @JsonBackReference
     private Product product;
 
     @ManyToOne
     @JoinColumn(name = "ToppingId", nullable = false)
+    @ToString.Exclude
+    @JsonBackReference
     private Topping topping;
-
-    @Column(name = "ProductId", insertable = false, updatable = false)
-    private Integer productId;
-
-    @Column(name = "ToppingId", insertable = false, updatable = false)
-    private Integer toppingId;
 }

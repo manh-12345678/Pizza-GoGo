@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Viết đánh giá</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; background-color: #f8f9fa; }
+        /* CSS cho ngôi sao đánh giá */
+        .rating input[type="radio"] { display: none; } /* Ẩn radio button gốc */
+        .rating label {
+            font-size: 2.5rem;      /* Kích thước sao */
+            color: #ccc;           /* Màu sao mặc định (xám) */
+            cursor: pointer;
+            transition: color 0.2s ease; /* Hiệu ứng chuyển màu */
+            margin: 0 2px;          /* Khoảng cách giữa các sao */
+        }
+        /* Đảo ngược thứ tự hiển thị label để hiệu ứng hover đúng */
+        .rating {
+            display: inline-block;
+            direction: rtl; /* Right-to-left */
+        }
+        .rating label {
+            display: inline-block;
+            direction: ltr; /* Left-to-right cho ký tự sao */
+        }
+        /* Khi hover vào 1 sao, tô màu sao đó và các sao bên trái nó */
+        .rating label:hover,
+        .rating label:hover ~ label,
+            /* Khi chọn 1 sao, tô màu sao đó và các sao bên trái nó */
+        .rating input[type="radio"]:checked ~ label {
+            color: #ffc107; /* Màu sao được chọn (vàng) */
+        }
+    </style>
+</head>
+<body>
+<div class="container col-md-6 col-lg-5">
+    <h2 class="mb-4 text-center">Viết đánh giá cho đơn hàng #<span th:text="${orderId}"></span> 📝</h2>
+
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form th:action="@{/reviews/add}" th:object="${reviewDTO}" method="post">
+                <input type="hidden" th:field="*{orderId}"/>
+                <div class="mb-4 text-center">
+                    <label class="form-label d-block fw-bold">Đánh giá của bạn:</label>
+                    <div class="rating">
+                        <input type="radio" id="star5" th:field="*{rating}" value="5" /><label for="star5" title="Tuyệt vời">★</label>
+                        <input type="radio" id="star4" th:field="*{rating}" value="4" /><label for="star4" title="Tốt">★</label>
+                        <input type="radio" id="star3" th:field="*{rating}" value="3" /><label for="star3" title="Bình thường">★</label>
+                        <input type="radio" id="star2" th:field="*{rating}" value="2" /><label for="star2" title="Tệ">★</label>
+                        <input type="radio" id="star1" th:field="*{rating}" value="1" /><label for="star1" title="Rất tệ">★</label>
+                    </div>
+                    <div th:if="${#fields.hasErrors('rating')}" class="text-danger mt-1" th:errors="*{rating}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="comment" class="form-label fw-bold">Bình luận (tùy chọn):</label>
+                    <textarea class="form-control" id="comment" th:field="*{comment}" rows="4" placeholder="Chia sẻ cảm nhận..."></textarea>
+                    <div th:if="${#fields.hasErrors('comment')}" class="text-danger mt-1" th:errors="*{comment}"></div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <a th:href="@{/orders/history}" class="btn btn-outline-secondary"> <i class="bi bi-arrow-left"></i> Quay lại</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i> Gửi đánh giá</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

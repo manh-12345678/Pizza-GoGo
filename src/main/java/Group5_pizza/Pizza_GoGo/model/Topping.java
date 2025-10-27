@@ -1,5 +1,6 @@
 package Group5_pizza.Pizza_GoGo.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -20,18 +21,27 @@ public class Topping {
     @Column(name = "Name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "Price", nullable = false, columnDefinition = "DECIMAL(18,2) DEFAULT 0")
+    @Column(name = "Price", nullable = false, updatable = false, insertable = false)
     private BigDecimal price;
 
-    @Column(name = "CreatedAt", columnDefinition = "DATETIME DEFAULT GETDATE()")
+    @Column(name = "CreatedAt", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "UpdatedAt")
     private LocalDateTime updatedAt;
 
-    @Column(name = "IsDeleted", columnDefinition = "BIT DEFAULT 0")
-    private Boolean isDeleted;
+    @Column(name = "IsDeleted", nullable = false)
+    private Boolean isDeleted = false;
 
     @OneToMany(mappedBy = "topping")
+    @ToString.Exclude
+    @JsonManagedReference
     private List<ProductTopping> productToppings;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
 }

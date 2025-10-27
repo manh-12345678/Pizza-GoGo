@@ -19,7 +19,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> getAllAvailableProducts() {
-        return repository.findByIsDeletedFalse();
+        return repository.findByIsDeletedFalseOrIsDeletedNull();
     }
 
     @Override
@@ -69,5 +69,4 @@ public class ProductServiceImpl implements ProductService {
             return repository.findByCategory_CategoryId(categoryId);
         }
     }
-
 }
