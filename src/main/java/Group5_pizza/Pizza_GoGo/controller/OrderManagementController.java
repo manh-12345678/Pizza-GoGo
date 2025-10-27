@@ -11,46 +11,46 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors; // <-- Import
 
 @Controller
 @RequestMapping("/manager/orders")
 @RequiredArgsConstructor
 public class OrderManagementController {
+
     private final OrderService orderService;
     private final SimpMessagingTemplate messagingTemplate;
     private final DTOService dtoService;
 
     @GetMapping
-    public String viewOrders(@RequestParam(required = false) String status, Model model) {
-        List<Order> orders = orderService.getOrdersByStatus(status);
-        model.addAttribute("orders", orders);
-        model.addAttribute("status", status);
-        return "orders/manage_orders";
+    public String viewOrdersPage(Model model) {
+        // Trả về tên view của file manage_orders.html
+        return "orders/manage_orders"; // Sửa nếu cần
     }
 
     @GetMapping("/list")
     @ResponseBody
     public List<OrderDTO> getOrdersAjax(@RequestParam(required = false) String status) {
-        List<Order> orders = orderService.getOrdersByStatus(status);
+        // ⭐ Gọi service mới để lấy đầy đủ chi tiết
+        List<Order> orders = orderService.getOrdersByStatusWithDetails(status);
         return orders.stream()
                 .map(dtoService::convertToOrderDTO)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/{orderId}/status")
     @ResponseBody
     public String updateOrderStatus(@PathVariable Integer orderId,
                                     @RequestParam String status) {
-        boolean success = orderService.updateOrderStatus(orderId, status);
+        boolean success = orderService.updateOrderStatus(orderId, status.toUpperCase());
         if (success) {
-            // Khi đổi trạng thái → gửi realtime tới tất cả client
-            Order updatedOrder = orderService.getOrderById(orderId);
+            // ⭐ Lấy lại Order VỚI ĐẦY ĐỦ CHI TIẾT
+            Order updatedOrder = orderService.getOrderWithDetails(orderId);
             OrderDTO dto = dtoService.convertToOrderDTO(updatedOrder);
-
-            // Gửi tới tất cả client đang subscribe topic
             messagingTemplate.convertAndSend("/topic/orders/update", dto);
             return "success";
+        } else {
+            return "failed";
         }
-        return "failed";
     }
 }

@@ -39,4 +39,4 @@ static/qr_codes/*.png
 static/qrcodes/*.png
 .idea
 
-src/main/resources/application.properties
+/resources/application.properties
