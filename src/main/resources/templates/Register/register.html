@@ -3,18 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pizza GoGo - Login</title>
+    <title>Pizza GoGo - Register</title>
 
-    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
 
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #1a1a1a, #2c2c2c);
+            background-color: #1e1e1e;
             margin: 0;
             min-height: 100vh;
             display: flex;
@@ -22,107 +20,72 @@
             align-items: center;
         }
 
-        .login-container {
-            max-width: 420px;
+        .register-container {
+            max-width: 450px;
             width: 100%;
-            background: #1f1f1f;
-            border-radius: 16px;
-            box-shadow: 0 10px 35px rgba(0,0,0,0.6);
-            padding: 45px 35px;
+            background: #2c2c2c;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            padding: 40px 30px;
             color: #fff;
         }
 
-        .login-container h2 {
+        .register-container h2 {
             font-weight: 600;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             color: #ff7e00;
-            font-size: 2rem;
         }
 
         .form-label {
-            color: #ccc;
-            font-weight: 500;
+            color: #ddd;
         }
 
         .form-control {
-            background: #2c2c2c;
+            background: #1e1e1e;
             border: 1px solid #444;
             border-radius: 8px;
             color: #fff;
-            padding: 10px 14px;
+            padding: 10px;
         }
 
         .form-control:focus {
-            border-color: #ff7e00;
-            box-shadow: 0 0 8px #ff7e00;
-            background-color: #242424;
+            background-color: #1e1e1e;
             color: #fff;
+            border-color: #ff7e00;
+            box-shadow: 0 0 8px rgba(255, 126, 0, 0.4);
         }
 
-        .btn-login {
+        .btn-register {
             background-color: #ff7e00;
             color: #fff;
             font-weight: 600;
             border-radius: 8px;
-            padding: 12px 0;
-            transition: 0.3s ease;
-        }
-
-        .btn-login:hover {
-            background-color: #e66b00;
-        }
-
-        .btn-google {
-            background-color: #db4437;
-            color: #fff;
-            font-weight: 500;
-            border-radius: 8px;
-            padding: 12px 0;
-            transition: 0.3s ease;
+            padding: 10px 0;
+            transition: background-color 0.3s ease;
             border: none;
         }
 
-        .btn-google:hover {
-            background-color: #c1351d;
-        }
-
-        .divider {
-            text-align: center;
-            color: #aaa;
-            margin: 20px 0;
-            position: relative;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: "";
-            height: 1px;
-            background: #444;
-            position: absolute;
-            top: 50%;
-            width: 40%;
-        }
-
-        .divider::before {
-            left: 0;
-        }
-
-        .divider::after {
-            right: 0;
+        .btn-register:hover {
+            background-color: #e66b00;
+            color: #fff;
         }
 
         .error-message {
             color: #ff4d4d;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             text-align: center;
             margin-top: 15px;
+            background-color: rgba(255, 77, 77, 0.1);
+            border: 1px solid rgba(255, 77, 77, 0.3);
+            padding: 10px;
+            border-radius: 8px;
         }
 
         .text-small {
             font-size: 0.9rem;
             text-align: center;
-            margin-top: 15px;
+            margin-top: 20px;
         }
 
         .text-small a {
@@ -137,18 +100,37 @@
 </head>
 <body>
 
-<div class="login-container">
-    <h2>🍕 Pizza GoGo</h2>
+<div class="register-container">
+    <h2>🍕 Pizza GoGo - Register</h2>
 
-    <!-- Login Form -->
-    <form th:action="@{/login}" method="post">
+    <form th:action="@{/register}" method="post">
         <div class="mb-3">
-            <label for="username" class="form-label">Email / Username</label>
+            <label for="fullName" class="form-label">Full Name</label>
+            <input type="text"
+                   class="form-control"
+                   id="fullName"
+                   name="fullName"
+                   placeholder="Enter your full name"
+                   required>
+        </div>
+
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
             <input type="text"
                    class="form-control"
                    id="username"
                    name="username"
-                   placeholder="Enter your email or username"
+                   placeholder="Choose a username"
+                   required>
+        </div>
+
+        <div class="mb-3">
+            <label for="email" class="form-label">Email Address</label>
+            <input type="email"
+                   class="form-control"
+                   id="email"
+                   name="email"
+                   placeholder="Enter your email"
                    required>
         </div>
 
@@ -158,34 +140,31 @@
                    class="form-control"
                    id="password"
                    name="password"
-                   placeholder="Enter your password"
+                   placeholder="Minimum 6 characters"
                    required>
         </div>
 
-        <div class="d-grid mb-3">
-            <button type="submit" class="btn btn-login">Login</button>
+        <div class="mb-3">
+            <label for="confirmPassword" class="form-label">Confirm Password</label>
+            <input type="password"
+                   class="form-control"
+                   id="confirmPassword"
+                   name="confirmPassword"
+                   placeholder="Re-enter password"
+                   required>
         </div>
 
-        <!-- Error message -->
+        <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-register">Create Account</button>
+        </div>
+
         <div th:if="${error}" class="error-message">
-            <p th:text="${error}"></p>
+            <p th:text="${error}" class="mb-0"></p>
         </div>
     </form>
 
-    <!-- Divider -->
-    <div class="divider">OR</div>
-
-  <div class="d-grid mb-3">
-    <a th:href="@{/login/google}" class="btn btn-google">
-        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" width="20" style="margin-right:8px;">
-        Login with Google
-    </a>
-</div>
-
-    <!-- Extra Links -->
     <div class="text-small">
-        <p>Don't have an account? <a th:href="@{/register}">Register now</a></p>
-        <p><a th:href="@{/forgot-password}">Forgot password?</a></p>
+        <p>Already have an account? <a th:href="@{/login}">Login here</a></p>
     </div>
 </div>
 
