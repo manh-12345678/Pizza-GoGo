@@ -13,4 +13,12 @@ public interface OrderService {
     List<Order> getAllOrders();
 
     Order getOrderWithDetails(Integer orderId);
+
+    List<Order> getOrderByStatus(String status);
+
+    boolean updateOrderStatus(Integer orderId, String status);
+
+    Order getLatestOrderByTable(RestaurantTable table);
+
+    public Order createNewOrderForTable(RestaurantTable table);
 }

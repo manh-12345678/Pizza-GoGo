@@ -1,6 +1,8 @@
 package Group5_pizza.Pizza_GoGo.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import Group5_pizza.Pizza_GoGo.model.Order;
 import Group5_pizza.Pizza_GoGo.model.RestaurantTable;
@@ -64,6 +66,42 @@ public class OrderServiceImpl implements OrderService {
                 .map(od -> od.getUnitPrice().multiply(java.math.BigDecimal.valueOf(od.getQuantity())))
                 .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add));
         return order;
+    }
+
+    @Override
+    public List<Order> getOrderByStatus(String status) {
+        if (status == null || status.isEmpty()) {
+            return orderRepository.findAll();
+        }
+        return orderRepository.findByStatus(status);
+    }
+
+    @Override
+    public boolean updateOrderStatus (Integer orderId, String status) {
+        Optional<Order> optionalOrder = orderRepository.findById(orderId);
+
+        if (optionalOrder.isEmpty()) {
+            return false;
+        }
+
+        Order order = optionalOrder.get();
+        order.setStatus(status);
+        orderRepository.save(order);
+        return true;
+    }
+
+    @Override
+    public Order getLatestOrderByTable(RestaurantTable table) {
+        return orderRepository.findTopByTableOrderByCreatedAtDesc(table).orElse(null);
+    }
+
+    @Override
+    public Order createNewOrderForTable(RestaurantTable table) {
+        Order order = new Order();
+        order.setTable(table);
+        order.setStatus("PENDING");
+        order.setCreatedAt(LocalDateTime.now());
+        return orderRepository.save(order);
     }
 
 }

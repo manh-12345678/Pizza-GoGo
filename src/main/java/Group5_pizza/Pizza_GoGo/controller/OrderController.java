@@ -52,13 +52,16 @@ public class OrderController {
 
     @GetMapping("/table/{tableId}")
     public String chooseMenu(@PathVariable Integer tableId, HttpSession session, Model model) {
-        Order order = (Order) session.getAttribute("currentOrder_" + tableId);
+        //Order order = (Order) session.getAttribute("currentOrder_" + tableId);
         RestaurantTable table = tableService.getTableById(tableId);
 
-        if (order == null) {
-            order = orderService.getOrCreatePendingOrderByTable(table);
-            session.setAttribute("currentOrder_" + tableId, order);
+        Order order = orderService.getLatestOrderByTable(table);
+
+        if (order == null || order.getStatus().equalsIgnoreCase("COMPLETED")) {
+            order = orderService.createNewOrderForTable(table);
         }
+
+        session.setAttribute("currentOrder_" + tableId, order);
 
        List<Product> products = productService.getAllProducts().stream()
                .filter(p -> p.getIsDeleted() != null && !p.getIsDeleted())
@@ -96,7 +99,7 @@ public class OrderController {
             Order order = orderService.getOrderWithDetails(orderId);
             Product product = productService.getProductById(productId);
 
-            orderDetailService.addOrUpdateOrderDetail(order, null, quantity, note);
+            orderDetailService.addOrUpdateOrderDetail(order, product, quantity, note);
 
             // Lưu session
             session.setAttribute("currentOrder_" + order.getTable().getTableId(), order);
