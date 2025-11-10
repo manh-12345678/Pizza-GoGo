@@ -36,7 +36,7 @@ public class LoginController {
         if (resetSuccess != null) {
             model.addAttribute("message", "Mật khẩu đã được thay đổi thành công! Vui lòng đăng nhập.");
         }
-        return "Login/login"; 
+        return "Login/login";
     }
 
     @PostMapping("/login")
