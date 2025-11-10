@@ -11,7 +11,7 @@ public interface ReviewService {
 
     List<Review> getReviewsByOrderId(Integer orderId);
 
-    // ⭐ THAY ĐỔI TÊN PHƯƠNG THỨC ⭐
+    // THAY ĐỔI TÊN PHƯƠNG THỨC
     List<Review> getReviewsByAccountId(Integer accountId); // Đổi từ CustomerId
 
     List<Review> getAllActiveReviews();

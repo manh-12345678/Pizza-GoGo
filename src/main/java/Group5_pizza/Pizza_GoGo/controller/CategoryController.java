@@ -2,13 +2,10 @@ package Group5_pizza.Pizza_GoGo.controller;
 
 import java.util.List;
 
+import Group5_pizza.Pizza_GoGo.service.CategoryService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import Group5_pizza.Pizza_GoGo.model.Category;
@@ -20,7 +17,10 @@ public class CategoryController {
 
     private final CategoryRepository categoryRepository;
 
-    public CategoryController(CategoryRepository categoryRepository) {
+    private final CategoryService categoryService;
+
+    public CategoryController(CategoryRepository categoryRepository, CategoryService categoryService) {
+        this.categoryService = categoryService;
         this.categoryRepository = categoryRepository;
     }
 

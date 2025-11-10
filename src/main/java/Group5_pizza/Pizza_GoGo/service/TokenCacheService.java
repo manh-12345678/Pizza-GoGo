@@ -13,7 +13,7 @@ public class TokenCacheService {
     private final StringRedisTemplate redisTemplate;
 
     public void saveToken(String token, String username) {
-        redisTemplate.opsForValue().set(token, username, 10, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(token, username, 1, TimeUnit.MINUTES);
     }
 
     public String getUsernameByToken(String token) {

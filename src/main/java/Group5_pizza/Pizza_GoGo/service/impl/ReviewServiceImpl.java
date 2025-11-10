@@ -23,13 +23,13 @@ import java.util.Optional;
 public class ReviewServiceImpl implements ReviewService {
 
     private final ReviewRepository reviewRepository;
-    private final AccountRepository accountRepository; // ⭐ Inject AccountRepository
+    private final AccountRepository accountRepository; // Inject AccountRepository
     private final OrderRepository orderRepository;
 
     @Override
     @Transactional
     public Review addReview(ReviewDTO reviewDTO) {
-        // ⭐ Kiểm tra sự tồn tại của Account
+        // Kiểm tra sự tồn tại của Account
         Account account = accountRepository.findById(reviewDTO.getUserId())
                 .orElseThrow(() -> new RuntimeException("Account không tồn tại với ID: " + reviewDTO.getUserId()));
 
@@ -41,7 +41,7 @@ public class ReviewServiceImpl implements ReviewService {
         // TODO: (Nâng cao) Kiểm tra xem order này đã được review bởi account này chưa
 
         Review review = new Review();
-        review.setAccount(account); // ⭐ Gán Account
+        review.setAccount(account); // Gán Account
         review.setOrder(order);
         review.setRating(reviewDTO.getRating());
         review.setComment(reviewDTO.getComment());
@@ -57,7 +57,7 @@ public class ReviewServiceImpl implements ReviewService {
         return reviewRepository.findByOrderOrderIdAndIsDeletedFalse(orderId);
     }
 
-    // ⭐ THAY ĐỔI TÊN VÀ LOGIC PHƯƠNG THỨC ⭐
+    // THAY ĐỔI TÊN VÀ LOGIC PHƯƠNG THỨC
     @Override
     @Transactional(readOnly = true)
     public List<Review> getReviewsByAccountId(Integer accountId) { // Đổi tên tham số

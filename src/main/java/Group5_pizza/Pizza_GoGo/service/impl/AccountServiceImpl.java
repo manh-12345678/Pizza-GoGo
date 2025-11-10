@@ -63,6 +63,7 @@ public class AccountServiceImpl implements AccountService {
         Account account = new Account();
         account.setEmail(email);
         account.setFullName(name);
+        account.setUsername(name);
 
         Role customerRole = roleRepository.findByRoleName("CUSTOMER");
         account.setRole(customerRole);

@@ -60,7 +60,7 @@ public class OrderController {
 
         session.setAttribute("currentOrder_" + tableId, order);
 
-        // ĐÃ SỬA: Gọi phương thức mới để lấy sản phẩm KÈM topping
+        // Gọi phương thức mới để lấy sản phẩm KÈM topping
         List<Product> products = productService.getAllAvailableProducts();
 
         // Gom theo category
@@ -99,7 +99,7 @@ public class OrderController {
             Order order = orderService.getOrderWithDetails(orderId);
             Product product = productService.getProductById(productId);
 
-            // Lưu ý: addOrUpdateOrderDetail phải được sửa để LƯU 'note'
+            // addOrUpdateOrderDetail phải được sửa để LƯU 'note'
             orderDetailService.addOrUpdateOrderDetail(order, product, quantity, note);
 
             // Cập nhật lại order sau khi thêm

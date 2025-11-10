@@ -40,7 +40,7 @@ public class RegisterController {
             Model model
     ) {
         try {
-            // --- Input Validation ---
+            // Input Validation
             if (fullName == null || fullName.trim().isEmpty()) {
                 model.addAttribute("error", "Full name is required!");
                 return "Register/register";
@@ -68,7 +68,7 @@ public class RegisterController {
                 return "Register/register";
             }
 
-            // --- Business Logic Validation ---
+            // Business Logic Validation
             if (accountService.existsByUsername(username)) {
                 model.addAttribute("error", "Username is already taken!");
                 return "Register/register";
@@ -78,14 +78,14 @@ public class RegisterController {
                 return "Register/register";
             }
 
-            // --- Account Creation ---
+            // Account Creation
             Account account = new Account();
             account.setFullName(fullName);
             account.setUsername(username);
             account.setEmail(email);
             account.setPasswordHash(password); // Service will hash this later
 
-            // **FIXED**: Assign "CUSTOMER" role instead of "USER"
+            // Assign "CUSTOMER" role instead of "USER"
             Role customerRole = roleRepository.findByRoleName("CUSTOMER");
             if (customerRole == null) {
                 // This is a safeguard in case the DataSeeder hasn't run
@@ -96,7 +96,7 @@ public class RegisterController {
 
             accountService.register(account);
 
-            // --- Send Confirmation Email ---
+            // Send Confirmation Email
             String token = UUID.randomUUID().toString();
             accountService.createConfirmationToken(account, token);
             String confirmUrl = "http://localhost:8080/confirm?token=" + token;

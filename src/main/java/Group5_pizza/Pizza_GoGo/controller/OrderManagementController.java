@@ -24,8 +24,7 @@ public class OrderManagementController {
 
     @GetMapping
     public String viewOrdersPage(Model model) {
-        // Trả về tên view của file manage_orders.html
-        return "orders/manage_orders"; // Sửa nếu cần
+        return "orders/manage_orders";
     }
 
     @GetMapping("/list")

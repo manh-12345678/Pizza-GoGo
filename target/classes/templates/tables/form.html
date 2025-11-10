@@ -143,6 +143,38 @@
             <button class="btn" type="button">Quay lại danh sách</button>
         </a>
     </div>
+
+<!--    Kiểm tra trùng số bàn-->
+    <script>
+        document.getElementById("tableNumber").addEventListener("input", async function () {
+            const number = this.value.trim();
+            const errorDiv = document.getElementById("tableNumberError");
+            const submitBtn = document.getElementById("submitBtn");
+
+            if (!number) {
+                errorDiv.textContent = "";
+                submitBtn.disabled = false;
+                return;
+            }
+
+            const tableId = /*[[${table.tableId}]]*/ null; // Thymeleaf sẽ thay thế khi edit
+
+            try {
+                const res = await fetch(`/tables/check-number/${number}`);
+                const exists = await res.json();
+
+                if (exists && !tableId) {
+                    errorDiv.textContent = `⚠️ Số bàn ${number} đã tồn tại!`;
+                    submitBtn.disabled = true;
+                } else {
+                    errorDiv.textContent = "";
+                    submitBtn.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+    </script>
 </body>
 
 </html>

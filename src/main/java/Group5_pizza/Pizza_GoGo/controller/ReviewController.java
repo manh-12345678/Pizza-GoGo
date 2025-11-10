@@ -40,7 +40,7 @@ public class ReviewController {
             Order order = orderService.getOrderById(orderId);
             // TODO: Thêm kiểm tra quyền sở hữu order
 
-            // ⭐ SỬA Ở ĐÂY: Tạo DTO và gán orderId vào DTO ⭐
+            // Tạo DTO và gán orderId vào DTO
             ReviewDTO reviewDTO = new ReviewDTO();
             reviewDTO.setOrderId(orderId); // Gán ID vào đối tượng DTO
 
@@ -58,10 +58,10 @@ public class ReviewController {
                                RedirectAttributes redirectAttributes,
                                Model model) {
 
-        // --- Sử dụng UserId cố định để test ---
+        // Sử dụng UserId cố định để test
         Integer currentUserId = 1; // ID user tồn tại trong DB
         reviewDTO.setUserId(currentUserId);
-        // --- ---
+        //
 
         // (Tùy chọn) Kiểm tra thủ công
         if (reviewDTO.getRating() == null || reviewDTO.getRating() < 1 || reviewDTO.getRating() > 5) {
@@ -86,7 +86,7 @@ public class ReviewController {
             reviewService.addReview(reviewDTO);
             redirectAttributes.addFlashAttribute("successMessage", "Gửi đánh giá thành công!");
 
-            // ⭐ THAY ĐỔI URL CHUYỂN HƯỚNG TẠI ĐÂY ⭐
+            // THAY ĐỔI URL CHUYỂN HƯỚNG TẠI ĐÂY
             // return "redirect:/orders/history"; // URL cũ
             return "redirect:/"; // Ví dụ: Chuyển về trang chủ
             // Hoặc: return "redirect:/orders/details/" + reviewDTO.getOrderId(); // Nếu có trang chi tiết đơn hàng
@@ -127,7 +127,7 @@ public class ReviewController {
     public String manageReviews(Model model) {
         List<Review> allReviews = reviewService.getAllActiveReviews();
         model.addAttribute("reviews", allReviews);
-        return "reviews/manage_reviews";
+        return "reviews/manage_review";
     }
 
     @PostMapping("/delete/{reviewId}")
@@ -143,7 +143,7 @@ public class ReviewController {
     }
 
 
-    // == API Endpoints (Cập nhật đường dẫn/tham số nếu cần) ==
+    // API Endpoints (Cập nhật đường dẫn/tham số nếu cần)
 
     @GetMapping("/api/order/{orderId}")
     @ResponseBody
@@ -152,7 +152,7 @@ public class ReviewController {
         return ResponseEntity.ok(reviews);
     }
 
-    // ⭐ THAY ĐỔI ĐƯỜNG DẪN VÀ THAM SỐ ⭐
+    // THAY ĐỔI ĐƯỜNG DẪN VÀ THAM SỐ
     @GetMapping("/api/account/{userId}") // Đổi từ customer/{customerId}
     @ResponseBody
     public ResponseEntity<List<Review>> getReviewsByAccountApi(@PathVariable Integer userId) { // Đổi tên tham số

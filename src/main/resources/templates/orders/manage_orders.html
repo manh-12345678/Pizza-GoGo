@@ -75,6 +75,7 @@
         .badge-preparing { background: #06b6d4; color:#fff; }
         .badge-ready { background: #10b981; color:#fff; }
         .badge-completed { background: #6b7280; color:#fff; }
+        .badge-cancel { background: #A295FF; color:#fff; }
 
         /* Details panel */
         .details-panel {
@@ -124,7 +125,7 @@
     <!-- SIDEBAR -->
     <aside class="sidebar">
         <div class="p-4 border-bottom" style="border-color:var(--border);">
-            <h1 style="margin:0;color:var(--primary);font-size:1.25rem">RestroAdmin</h1>
+            <h1 style="margin:0;color:var(--primary);font-size:1.25rem">Admin</h1>
             <p class="muted" style="margin:4px 0 0;font-size:.85rem">Quản Lý Đơn Hàng</p>
         </div>
 
@@ -134,6 +135,7 @@
             <a href="#" id="filter-preparing" class="nav-link">Đang Chuẩn Bị <span id="count-preparing" class="ms-auto badge badge-preparing">0</span></a>
             <a href="#" id="filter-ready" class="nav-link">Sẵn Sàng <span id="count-ready" class="ms-auto badge badge-ready">0</span></a>
             <a href="#" id="filter-completed" class="nav-link">Hoàn Thành <span id="count-completed" class="ms-auto badge badge-completed">0</span></a>
+            <a href="#" id="filter-cancel" class="nav-link">Hủy <span id="count-cancel" class="ms-auto badge badge-cancel">0</span></a>
         </nav>
 
         <div style="margin-top:auto;padding:12px;border-top:1px solid var(--border);">
@@ -154,7 +156,7 @@
             <div class="d-flex align-items-center justify-content-between">
                 <h2 style="margin:0;font-size:1.125rem">Đơn Hàng</h2>
                 <div class="d-flex gap-2 align-items-center">
-                    <input id="searchInput" type="text" placeholder="Tìm kiếm bàn hoặc ID..." class="form-control form-control-sm" style="max-width:260px;">
+                    <input id="searchInput" type="text" placeholder="Tìm kiếm bàn hoặc ID..." class="form-control form-control-sm" style="max-width:260;">
                     <button id="refreshBtn" class="btn btn-sm btn-primary">Refresh</button>
                 </div>
             </div>
@@ -165,12 +167,23 @@
                 <button class="btn btn-sm btn-outline-secondary" data-filter="preparing">Đang Chuẩn Bị</button>
                 <button class="btn btn-sm btn-outline-secondary" data-filter="ready">Sẵn Sàng</button>
                 <button class="btn btn-sm btn-outline-secondary" data-filter="completed">Hoàn Thành</button>
+                <button class="btn btn-sm btn-outline-secondary" data-filter="cancel">Hủy</button>
             </div>
 
             <div class="orders-grid flex-grow-1 overflow-auto">
-                <div id="ordersRow" class="row g-3" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;">
-                    <!-- cards injected here -->
-                </div>
+                <table class="table table-dark table-hover align-middle">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Bàn</th>
+                        <th>Khách</th>
+                        <th>Thời Gian</th>
+                        <th>Trạng Thái</th>
+                        <th>Tổng</th>
+                    </tr>
+                    </thead>
+                    <tbody id="ordersRow"></tbody>
+                </table>
             </div>
         </section>
 
@@ -214,6 +227,7 @@
                         <option value="preparing">Đang Chuẩn Bị</option>
                         <option value="ready">Sẵn Sàng</option>
                         <option value="completed">Hoàn Thành</option>
+                        <option value="cancel">Hủy</option>
                     </select>
                 </div>
             </div>
@@ -281,6 +295,7 @@
             case 'preparing': return '<span class="badge badge-preparing">Đang Chuẩn Bị</span>';
             case 'ready': return '<span class="badge badge-ready">Sẵn Sàng</span>';
             case 'completed': return '<span class="badge badge-completed">Hoàn Thành</span>';
+            case 'cancel': return '<span class="badge badge-cancel">Hủy</span>';
             default: return '<span class="badge bg-secondary">'+status+'</span>';
         }
     }
@@ -296,52 +311,62 @@
         document.getElementById('count-preparing').textContent = counts.preparing;
         document.getElementById('count-ready').textContent = counts.ready;
         document.getElementById('count-completed').textContent = counts.completed;
+        document.getElementById('count-cancel').textContent = counts.completed;
     }
 
     function renderOrders(){
         const container = document.getElementById('ordersRow');
         container.innerHTML = '';
         const q = document.getElementById('searchInput').value.trim().toLowerCase();
-        const filtered = orders.filter(o=>{
-            if(currentFilter!=='all' && o.status !== currentFilter) return false;
-            if(!q) return true;
-            return ((''+o.table).toLowerCase().includes(q)) || ((''+o.id).toLowerCase().includes(q));
-        });
+
+        // --- định nghĩa thứ tự trạng thái ---
+        const orderPriority = {
+            'pending': 1,      // Đang Chờ
+            'preparing': 2,    // Đang Chuẩn Bị
+            'ready': 3,        // Sẵn Sàng
+            'completed': 4,    // Hoàn Thành
+            'cancel': 5        // Hủy
+        };
+
+        // --- lọc & sắp xếp ---
+        const filtered = orders
+            .filter(o=>{
+                if(currentFilter!=='all' && o.status !== currentFilter) return false;
+                if(!q) return true;
+                return ((''+o.table).toLowerCase().includes(q)) || ((''+o.id).toLowerCase().includes(q));
+            })
+            .sort((a,b)=>{
+                const pa = orderPriority[a.status] || 99;
+                const pb = orderPriority[b.status] || 99;
+                if(pa !== pb) return pa - pb;
+                return (b.id - a.id); // nếu cùng trạng thái, ID mới hơn hiển thị trên
+            });
 
         if(filtered.length===0){
-            container.innerHTML = '<div class="p-4 muted">Không có đơn hàng phù hợp</div>';
+            container.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">Không có đơn hàng phù hợp</td></tr>';
             renderCounts();
             return;
         }
 
         filtered.forEach(o=>{
-            const div = document.createElement('div');
-            div.className = 'card-order';
-            if(selectedOrder && selectedOrder.id === o.id) div.classList.add('selected');
-            div.dataset.table = o.table;
-            div.dataset.id = o.id;
-            div.innerHTML = `
-          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
-            <div>
-              <div class="muted" style="font-size:.85rem">Bàn</div>
-              <div style="font-size:1.25rem;font-weight:700">${o.table || ''}</div>
-            </div>
-            <div>${statusBadge(o.status)}</div>
-          </div>
-          <div style="margin-bottom:8px">
-            <div class="muted small">ID: <span>${o.id}</span></div>
-            <div class="muted small">Thời gian: <span>${o.time || ''}</span></div>
-            <div class="muted small">Khách: <span>${o.guests ?? '-'}</span></div>
-          </div>
-          <div style="border-top:1px solid var(--border);padding-top:8px">
-            <div style="font-weight:700;color:var(--primary)">${money(o.total ?? 0)}</div>
-          </div>
+            const tr = document.createElement('tr');
+            tr.style.cursor = 'pointer';
+            if(selectedOrder && selectedOrder.id === o.id) tr.classList.add('table-active');
+            tr.innerHTML = `
+            <td>#${o.id}</td>
+            <td>${o.table || '-'}</td>
+            <td>${o.guests ?? '-'}</td>
+            <td>${o.time || '-'}</td>
+            <td>${statusBadge(o.status)}</td>
+            <td class="text-primary fw-bold">${money(o.total ?? 0)}</td>
         `;
-            div.addEventListener('click',()=> selectOrderCard(o.id));
-            container.appendChild(div);
+            tr.addEventListener('click',()=> selectOrderCard(o.id));
+            container.appendChild(tr);
         });
         renderCounts();
     }
+
+
 
     function renderDetails(order){
         if(!order) return;

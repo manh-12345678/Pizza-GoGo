@@ -85,7 +85,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * THÊM MỚI/ĐÃ SỬA: Phương thức "thông minh" cho Admin Dashboard
+     * hương thức "thông minh" cho Admin Dashboard
      * Tải danh sách Order kèm chi tiết và tính toán lại.
      */
     @Override

@@ -5,11 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import Group5_pizza.Pizza_GoGo.model.RestaurantTable;
@@ -91,10 +87,10 @@ public class RestaurantTableController {
             RedirectAttributes redirectAttributes,
             HttpServletRequest request) {
         try {
+
             table.setTableId(id);
             RestaurantTable savedTable = restaurantTableService.saveTable(table, null);
 
-            // Nếu chưa có QR code thì tạo mới
             if (savedTable.getQrCodeUrl() == null || savedTable.getQrCodeUrl().isEmpty()) {
                 String baseUrl = request.getScheme() + "://" + request.getServerName()
                         + ":" + request.getServerPort() + request.getContextPath();
@@ -150,6 +146,24 @@ public class RestaurantTableController {
             return "tables/view";
         } catch (Exception e) {
             return "redirect:/tables";
+        }
+    }
+
+    @GetMapping("/check-number/{tableNumber}")
+    @ResponseBody
+    public boolean checkTableNumberExists(@PathVariable Integer tableNumber) {
+        try {
+            restaurantTableService.getAllTables()
+                    .stream()
+                    .filter(t -> !Boolean.TRUE.equals(t.getIsDeleted())) // nếu có cờ xóa mềm
+                    .filter(t -> t.getTableNumber().equals(tableNumber))
+                    .findFirst()
+                    .ifPresent(t -> {
+                        throw new RuntimeException("exists");
+                    });
+            return false;
+        } catch (RuntimeException e) {
+            return true;
         }
     }
 }

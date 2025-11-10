@@ -43,6 +43,15 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
     public RestaurantTable saveTable(RestaurantTable table, String baseUrl) {
         boolean isNew = table.getTableId() == null;
 
+        // Kiểm tra trùng số bàn
+        tableRepository.findByTableNumber(table.getTableNumber()).ifPresent(existing -> {
+            if (isNew || !existing.getTableId().equals(table.getTableId())) {
+                throw new RuntimeException("Số bàn " + table.getTableNumber() + " đã tồn tại!");
+            }
+        });
+
+        RestaurantTable savedTable = tableRepository.save(table);
+
         if (isNew) {
             // Đường dẫn folder chứa QR
             String qrFolderPath = "src/main/resources/static/qrcodes";
@@ -58,10 +67,10 @@ public class RestaurantTableServiceImpl implements RestaurantTableService {
                 qrText = "/order/table/" + table.getTableNumber(); // Dùng đường dẫn tương đối nếu baseUrl null
             }
 
-            String qrPath = qrFolderPath + "/table-" + table.getTableNumber() + ".png";
+            String qrFilePath = qrFolderPath + "/table-" + table.getTableNumber() + ".png";
 
             try {
-                Group5_pizza.Pizza_GoGo.util.QRCodeGenerator.generateQRCodeImage(qrText, qrPath, 250, 250);
+                QRCodeGenerator.generateQRCodeImage(qrText, qrFilePath, 250, 250);
                 table.setQrCodeUrl("/qrcodes/table-" + table.getTableNumber() + ".png");
             } catch (WriterException | IOException e) {
                 e.printStackTrace();
