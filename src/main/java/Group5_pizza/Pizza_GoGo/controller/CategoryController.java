@@ -2,25 +2,26 @@ package Group5_pizza.Pizza_GoGo.controller;
 
 import java.util.List;
 
-import Group5_pizza.Pizza_GoGo.service.CategoryService;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import Group5_pizza.Pizza_GoGo.model.Category;
 import Group5_pizza.Pizza_GoGo.repository.CategoryRepository;
 
 @Controller
-@RequestMapping("/categories")
+@RequestMapping({"/categories","/manager/categories"})
 public class CategoryController {
 
     private final CategoryRepository categoryRepository;
 
-    private final CategoryService categoryService;
-
-    public CategoryController(CategoryRepository categoryRepository, CategoryService categoryService) {
-        this.categoryService = categoryService;
+    public CategoryController(CategoryRepository categoryRepository) {
         this.categoryRepository = categoryRepository;
     }
 
@@ -38,33 +39,33 @@ public class CategoryController {
     }
 
     @PostMapping
-    public String createCategory(@ModelAttribute Category category, RedirectAttributes redirectAttributes) {
+    public String createCategory(@ModelAttribute @NonNull Category category, RedirectAttributes redirectAttributes) {
         categoryRepository.save(category);
         redirectAttributes.addFlashAttribute("success", "Category '" + category.getCategoryName() + "' đã được tạo!");
-        return "redirect:/categories";
+        return "redirect:/manager/categories";
     }
 
     @GetMapping("/edit/{id}")
-    public String showEditForm(@PathVariable Integer id, Model model) {
+    public String showEditForm(@PathVariable @NonNull Integer id, Model model) {
         Category category = categoryRepository.findById(id).orElse(null);
         model.addAttribute("category", category);
         return "categories/form";
     }
 
     @PostMapping("/{id}")
-    public String updateCategory(@PathVariable Integer id, @ModelAttribute Category category,
-                                 RedirectAttributes redirectAttributes) {
+    public String updateCategory(@PathVariable @NonNull Integer id, @ModelAttribute @NonNull Category category,
+            RedirectAttributes redirectAttributes) {
         category.setCategoryId(id);
         categoryRepository.save(category);
         redirectAttributes.addFlashAttribute("success",
                 "Category '" + category.getCategoryName() + "' đã được cập nhật!");
-        return "redirect:/categories";
+        return "redirect:/manager/categories";
     }
 
     @GetMapping("/delete/{id}")
-    public String deleteCategory(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+    public String deleteCategory(@PathVariable @NonNull Integer id, RedirectAttributes redirectAttributes) {
         categoryRepository.deleteById(id);
         redirectAttributes.addFlashAttribute("success", "Category đã bị xóa!");
-        return "redirect:/categories";
+        return "redirect:/manager/categories";
     }
 }

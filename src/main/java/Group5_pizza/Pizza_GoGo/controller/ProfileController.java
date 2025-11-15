@@ -50,7 +50,7 @@ public String updateProfile(@ModelAttribute("account") Account updatedAccount,
     updatedAccount.setUsername(loggedInUser.getUsername());
     updatedAccount.setRole(loggedInUser.getRole());
 
-    accountService.updateAccount(updatedAccount);
+    accountService.updateAccountProfile(updatedAccount);
     session.setAttribute("loggedInUser", updatedAccount);
 
     redirectAttributes.addFlashAttribute("message", "Cập nhật thông tin thành công!");
@@ -68,9 +68,17 @@ public String changePassword(@RequestParam("currentPassword") String currentPass
         return "redirect:/login";
     }
 
-    boolean success = accountService.changePassword(loggedInUser.getUsername(), currentPassword, newPassword);
-    if (!success) {
+    // Verify current password by attempting login
+    Account verified = accountService.login(loggedInUser.getUsername(), currentPassword);
+    if (verified == null) {
         redirectAttributes.addFlashAttribute("error", "Mật khẩu hiện tại không đúng.");
+        return "redirect:/profile";
+    }
+
+    // Reset to new password
+    boolean success = accountService.resetPassword(loggedInUser.getUsername(), newPassword);
+    if (!success) {
+        redirectAttributes.addFlashAttribute("error", "Không thể đổi mật khẩu.");
         return "redirect:/profile";
     }
 
