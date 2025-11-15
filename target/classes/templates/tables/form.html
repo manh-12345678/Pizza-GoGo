@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org">
 
 <head>
     <meta charset="UTF-8">
@@ -116,7 +116,7 @@
             <div th:if="${error}" style="color: #ff3333;" th:text="${error}"></div>
         </div>
 
-        <form th:action="${table.tableId} == null ? @{/tables} : @{'/tables/' + ${table.tableId}}" method="post"
+        <form th:action="${table.tableId} == null ? @{/manager/tables} : @{'/manager/tables/' + ${table.tableId}}" method="post"
             th:object="${table}">
             <label for="tableName">Tên bàn:</label>
             <input type="text" id="tableName" th:field="*{tableName}" placeholder="Nhập tên bàn" required />
@@ -139,7 +139,7 @@
             <img th:src="@{${table.qrCodeUrl}}" alt="QR Code" class="qr-code" />
         </div>
 
-        <a th:href="@{/tables}" class="back-link">
+        <a th:href="@{/manager/tables}" class="back-link">
             <button class="btn" type="button">Quay lại danh sách</button>
         </a>
     </div>

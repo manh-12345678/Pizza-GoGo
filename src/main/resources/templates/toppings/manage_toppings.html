@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{manager/fragments/layout :: managerHead('Quản lý topping', ~{::extraHead})}">
+    <th:block th:fragment="extraHead">
+        <style>
+            .card { margin-bottom: 20px; }
+            .search-box { max-width: 500px; }
+            .table-actions { white-space: nowrap; }
+            .btn-sm { margin: 2px; }
+        </style>
+    </th:block>
+</head>
+<body>
+<div th:replace="~{manager/fragments/layout :: managerLayout('toppings', ~{::pageContent})}">
+    <div th:fragment="pageContent">
+        <div class="container px-0">
+            <h2 class="mb-4"><i class="bi bi-plus-circle-dotted"></i> Quản lý Topping</h2>
+
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle"></i> <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <form th:action="@{/manager/toppings/manage}" method="get" class="d-flex search-box">
+                                <input type="text" name="search" class="form-control me-2"
+                                       placeholder="Tìm kiếm topping..." th:value="${search}">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> Tìm
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a th:href="@{/manager/toppings/add}" class="btn btn-success">
+                                <i class="bi bi-plus-circle"></i> Thêm Topping Mới
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div th:if="${toppings == null || toppings.isEmpty()}" class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Không có topping nào.
+                    </div>
+
+                    <div th:if="${toppings != null && !toppings.isEmpty()}" class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên Topping</th>
+                                <th>Giá</th>
+                                <th>Số NVL</th>
+                                <th class="text-center">Thao tác</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="topping : ${toppings}">
+                                <td th:text="${topping.toppingId}"></td>
+                                <td>
+                                    <strong th:text="${topping.name}"></strong>
+                                </td>
+                                <td th:text="${#numbers.formatDecimal(topping.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                                <td>
+                                    <span class="badge bg-info" th:text="${topping.ingredients != null ? topping.ingredients.size() : 0} + ' NVL'"></span>
+                                </td>
+                                <td class="text-center table-actions">
+                                    <a th:href="@{/manager/toppings/edit/{id}(id=${topping.toppingId})}"
+                                       class="btn btn-sm btn-warning" title="Chỉnh sửa">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form th:action="@{/manager/toppings/delete/{id}(id=${topping.toppingId})}"
+                                          method="post" style="display:inline;"
+                                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa topping này?');">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{manager/fragments/layout :: managerScripts(~{manager/fragments/layout :: emptyScripts})}"></th:block>
+</body>
+</html>

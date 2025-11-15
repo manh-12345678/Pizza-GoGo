@@ -27,16 +27,33 @@
         <div th:each="review : ${reviews}" class="card mb-3 shadow-sm">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="fw-bold">
-                         <i class="bi bi-person-circle"></i>
-                         <span th:text="${review.account?.username} ?: (${review.account?.fullName} ?: 'Người dùng ẩn danh')"></span>
-                    </span>
-                    <small class="text-muted" th:text="${#temporals.format(review.createdAt, 'dd/MM/yyyy HH:mm')}"></small>
+                    <div>
+                        <span class="fw-bold">
+                             <i class="bi bi-person-circle"></i>
+                             <span th:text="${review.customerName} ?: 'Khách hàng'"></span>
+                        </span>
+                        <div class="text-muted small">
+                            <i class="bi bi-bag"></i>
+                            <span th:text="${review.productName}">Sản phẩm</span>
+                        </div>
+                    </div>
+                    <small class="text-muted text-end" th:text="${#temporals.format(review.createdAt, 'dd/MM/yyyy HH:mm')}"></small>
                 </div>
-                <p class="card-text star-rating mb-1 fs-5"> <span th:each="i : ${#numbers.sequence(1, review.rating)}">★</span><span style="color: #dee2e6;"> <span th:each="i : ${#numbers.sequence(1, 5 - review.rating)}">★</span></span>
+                <p class="card-text star-rating mb-2 fs-5">
+                    <span th:each="i : ${#numbers.sequence(1, review.rating)}">★</span>
+                    <span style="color: #dee2e6;">
+                        <span th:each="i : ${#numbers.sequence(1, 5 - review.rating)}">★</span>
+                    </span>
                 </p>
-                <p class="card-text mb-0" th:if="${review.comment != null and !review.comment.isEmpty()}" th:text="${review.comment}"></p>
-                <p class="card-text fst-italic text-muted mb-0" th:if="${review.comment == null or review.comment.isEmpty()}">(Không có bình luận)</p>
+                <p class="card-text mb-2" th:if="${review.comment != null and !review.comment.isEmpty()}" th:text="${review.comment}"></p>
+                <p class="card-text fst-italic text-muted mb-2" th:if="${review.comment == null or review.comment.isEmpty()}">(Không có bình luận)</p>
+                <div th:if="${review.adminReply != null}" class="bg-light rounded p-3">
+                    <div class="fw-semibold text-secondary">
+                        <i class="bi bi-shield-check"></i> Phản hồi từ quản trị viên
+                    </div>
+                    <div th:text="${review.adminReply}"></div>
+                    <small class="text-muted" th:text="${#temporals.format(review.adminReplyAt, 'dd/MM/yyyy HH:mm')}"></small>
+                </div>
             </div>
         </div>
     </div>

@@ -1,130 +1,89 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Danh sách bàn</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #1e1e1e;
-            color: #fff;
-            margin: 20px;
-        }
-
-        h1 {
-            color: #ff6a00;
-        }
-
-        a,
-        button {
-            text-decoration: none;
-            color: #fff;
-        }
-
-        .btn {
-            padding: 6px 12px;
-            background-color: #ff6a00;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .btn:hover {
-            background-color: #ff4500;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            background-color: #2e2e2e;
-        }
-
-        th,
-        td {
-            padding: 12px;
-            border: 1px solid #444;
-            text-align: left;
-        }
-
-        th {
-            background-color: #ff6a00;
-            color: #fff;
-        }
-
-        tr:nth-child(even) {
-            background-color: #3a3a3a;
-        }
-
-        tr:hover {
-            background-color: #444;
-        }
-
-        .flash-message {
-            margin-top: 10px;
-        }
-
-        .add-btn {
-            margin-top: 10px;
-            display: inline-block;
-        }
-
-        img.qr-code {
-            width: 100px;
-            border: 1px solid #555;
-            border-radius: 5px;
-        }
-    </style>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{manager/fragments/layout :: managerHead('Quản lý bàn', ~{::extraHead})}">
+    <th:block th:fragment="extraHead">
+        <style>
+            .card { margin-bottom: 20px; }
+            .table-actions { white-space: nowrap; }
+            .qr-code { width: 90px; border-radius: 4px; border: 1px solid rgba(0,0,0,0.1); }
+        </style>
+    </th:block>
 </head>
-
 <body>
-    <h1>Danh sách bàn</h1>
+<div th:replace="~{manager/fragments/layout :: managerLayout('tables', ~{::pageContent})}">
+    <div th:fragment="pageContent">
+        <div class="container px-0">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0"><i class="bi bi-grid-3x3"></i> Danh sách bàn</h2>
+                <a th:href="@{/manager/tables/new}" class="btn btn-success">
+                    <i class="bi bi-plus-circle"></i> Thêm bàn mới
+                </a>
+            </div>
 
-    <!-- Flash messages -->
-    <div class="flash-message">
-        <div th:if="${success}" style="color: #00ff00;" th:text="${success}"></div>
-        <div th:if="${error}" style="color: #ff3333;" th:text="${error}"></div>
+            <div class="mb-3">
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div th:if="${#lists.isEmpty(tables)}" class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle"></i> Không có bàn nào.
+                    </div>
+                    <div th:if="${!#lists.isEmpty(tables)}" class="table-responsive mb-0">
+                        <table class="table table-hover table-striped align-middle">
+                            <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên bàn</th>
+                                <th>Số bàn</th>
+                                <th>Sức chứa</th>
+                                <th>Trạng thái</th>
+                                <th>QR Code</th>
+                                <th class="text-center">Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="table : ${tables}">
+                                <td th:text="${table.tableId}"></td>
+                                <td th:text="${table.tableName}"></td>
+                                <td th:text="${table.tableNumber}"></td>
+                                <td th:text="${table.capacity}"></td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${table.status == 'AVAILABLE' ? 'bg-success' : (table.status == 'RESERVED' ? 'bg-warning text-dark' : 'bg-secondary')}"
+                                          th:text="${table.status}"></span>
+                                </td>
+                                <td>
+                                    <img th:if="${table.qrCodeUrl != null}" th:src="${table.qrCodeUrl}" alt="QR Code" class="qr-code" />
+                                    <span th:if="${table.qrCodeUrl == null}" class="text-muted">Chưa có</span>
+                                </td>
+                                <td class="text-center table-actions">
+                                    <a th:href="@{'/tables/edit/' + ${table.tableId}}" class="btn btn-sm btn-warning me-1">
+                                        <i class="bi bi-pencil"></i> Sửa
+                                    </a>
+                                    <a th:href="@{'/tables/delete/' + ${table.tableId}}"
+                                       class="btn btn-sm btn-danger"
+                                       onclick="return confirm('Bạn có chắc muốn xóa bàn này?');">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
-    <a th:href="@{/tables/new}" class="btn add-btn">+ Thêm bàn mới</a>
-
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Tên bàn</th>
-                <th>Số bàn</th>
-                <th>Sức chứa</th>
-                <th>Trạng thái</th>
-                <th>QR Code</th>
-                <th>Hành động</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="table : ${tables}">
-                <td th:text="${table.tableId}"></td>
-                <td th:text="${table.tableName}"></td>
-                <td th:text="${table.tableNumber}"></td>
-                <td th:text="${table.capacity}"></td>
-                <td th:text="${table.status}"></td>
-                <td>
-                    <img th:if="${table.qrCodeUrl != null}" th:src="${table.qrCodeUrl}" alt="QR Code" class="qr-code" />
-                    <span th:if="${table.qrCodeUrl == null}">Chưa có</span>
-                </td>
-
-                <td>
-                    <a th:href="@{'/tables/edit/' + ${table.tableId}}" class="btn">Sửa</a>
-                    <a th:href="@{'/tables/delete/' + ${table.tableId}}" class="btn"
-                        onclick="return confirm('Bạn có chắc muốn xóa bàn này?')">Xóa</a>
-                </td>
-            </tr>
-            <tr th:if="${#lists.isEmpty(tables)}">
-                <td colspan="7" style="text-align:center;">Không có bàn nào</td>
-            </tr>
-        </tbody>
-    </table>
+<th:block th:replace="~{manager/fragments/layout :: managerScripts(~{manager/fragments/layout :: emptyScripts})}"></th:block>
 </body>
-
 </html>

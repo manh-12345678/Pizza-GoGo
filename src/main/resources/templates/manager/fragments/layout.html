@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="managerHead(pageTitle, extraHead)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle}">Quản lý hệ thống</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Josefin+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/manager-dashboard.css}">
+    <th:block th:if="${extraHead != null}" th:insert="${extraHead}"></th:block>
+</head>
+<body>
+<div th:fragment="managerLayout(activePage, content)">
+    <div class="container-fluid manager-layout">
+        <div class="row flex-nowrap">
+            <aside class="col-12 col-md-3 col-lg-2 p-0">
+                <div th:replace="~{manager/fragments/sidebar :: sidebar(${activePage})}"></div>
+            </aside>
+            <div class="sidebar-backdrop d-lg-none"></div>
+            <main class="col-12 col-md-9 col-lg-10 main-content">
+                <div class="manager-topbar d-lg-none d-flex align-items-center justify-content-between">
+                    <button class="btn btn-outline-light shadow-sm" type="button" data-sidebar-toggle>
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-speedometer2 manager-topbar-icon"></i>
+                        <span class="fw-semibold text-white text-uppercase small">Bảng điều khiển</span>
+                    </div>
+                </div>
+                <div class="container-fluid px-0" th:replace="${content}"></div>
+            </main>
+        </div>
+    </div>
+</div>
+
+<th:block th:fragment="managerScripts(extraScripts)">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const body = document.body;
+            const toggleButtons = document.querySelectorAll('[data-sidebar-toggle]');
+            const backdrop = document.querySelector('.sidebar-backdrop');
+
+            function closeSidebar() {
+                body.classList.remove('sidebar-open');
+            }
+
+            toggleButtons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    body.classList.toggle('sidebar-open');
+                });
+            });
+
+            if (backdrop) {
+                backdrop.addEventListener('click', closeSidebar);
+            }
+
+            window.addEventListener('resize', function () {
+                if (window.innerWidth >= 992) {
+                    closeSidebar();
+                }
+            });
+        });
+    </script>
+    <th:block th:insert="${extraScripts}"></th:block>
+</th:block>
+
+<th:block th:fragment="emptyScripts"></th:block>
+</body>
+</html>
+

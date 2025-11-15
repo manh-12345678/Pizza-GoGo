@@ -1,167 +1,161 @@
 package Group5_pizza.Pizza_GoGo.controller;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import Group5_pizza.Pizza_GoGo.DTO.ProductDTO;
+import Group5_pizza.Pizza_GoGo.model.Category;
+import Group5_pizza.Pizza_GoGo.model.Ingredient;
+import Group5_pizza.Pizza_GoGo.model.Topping;
+import Group5_pizza.Pizza_GoGo.service.CategoryService;
+import Group5_pizza.Pizza_GoGo.service.IngredientService;
+import Group5_pizza.Pizza_GoGo.service.ProductService;
+import Group5_pizza.Pizza_GoGo.service.ToppingService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import Group5_pizza.Pizza_GoGo.model.Category;
-import Group5_pizza.Pizza_GoGo.model.Product;
-import Group5_pizza.Pizza_GoGo.repository.CategoryRepository;
-import Group5_pizza.Pizza_GoGo.service.ProductService;
-import Group5_pizza.Pizza_GoGo.service.ProductToppingService;
-import Group5_pizza.Pizza_GoGo.service.ToppingService;
-import Group5_pizza.Pizza_GoGo.util.ProductValidator;
+import java.util.List;
 
+/**
+ * Controller Quản lý Sản phẩm (ĐÃ ĐỒNG NHẤT)
+ * Sử dụng /manage, /add, /edit
+ * ĐÃ CẬP NHẬT: Thêm logic để quản lý Topping tùy chọn
+ * THÊM API /api/products CHO ORDER MANAGEMENT
+ */
 @Controller
-@RequestMapping("/products")
+@RequestMapping({"/products","/manager/products"})
+@RequiredArgsConstructor
 public class ProductController {
 
     private final ProductService productService;
-    private final CategoryRepository categoryRepository;
+    private final CategoryService categoryService;
+    private final IngredientService ingredientService;
     private final ToppingService toppingService;
-    private final ProductToppingService productToppingService;
 
-    public ProductController(ProductService productService,
-                             CategoryRepository categoryRepository,
-                             ToppingService toppingService,
-                             ProductToppingService productToppingService) {
-        this.productService = productService;
-        this.categoryRepository = categoryRepository;
-        this.toppingService = toppingService;
-        this.productToppingService = productToppingService;
+    // ==================== PHẦN QUẢN LÝ (GIỮ NGUYÊN 100%) ====================
+    @GetMapping("/manage")
+    public String listProducts(@RequestParam(required = false) String search,
+                               @RequestParam(required = false) Integer categoryId,
+                               Model model) {
+        try {
+            List<ProductDTO> products = productService.searchAndFilterProducts(search, categoryId);
+            List<Category> categories = categoryService.getAllCategories();
+
+            model.addAttribute("products", products);
+            model.addAttribute("categories", categories);
+            model.addAttribute("search", search);
+            model.addAttribute("categoryId", categoryId);
+
+            return "products/manage_products";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Lỗi tải danh sách sản phẩm: " + e.getMessage());
+            return "products/manage_products";
+        }
     }
 
-    @GetMapping
-    public String getAllProducts(
-            @RequestParam(value = "name", required = false) String name,
-            @RequestParam(value = "categoryId", required = false) Integer categoryId,
-            Model model) {
+    @GetMapping("/add")
+    public String showAddForm(Model model) {
+        try {
+            List<Category> categories = categoryService.getAllCategories();
+            List<Ingredient> ingredients = ingredientService.getAllIngredients();
+            List<Topping> toppings = toppingService.getAllToppings();
 
-        List<Product> products = productService.searchProducts(name, categoryId);
-        List<Category> categories = categoryRepository.findAll();
+            model.addAttribute("productDTO", new ProductDTO());
+            model.addAttribute("allCategories", categories);
+            model.addAttribute("allIngredients", ingredients);
+            model.addAttribute("allToppings", toppings);
+            model.addAttribute("isEdit", false);
 
-        model.addAttribute("products", products);
-        model.addAttribute("categories", categories);
-        model.addAttribute("searchName", name);
-        model.addAttribute("searchCategoryId", categoryId);
-
-        return "products/list";
+            return "products/product_form";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Lỗi tải trang thêm mới: " + e.getMessage());
+            return "redirect:/manager/products/manage";
+        }
     }
 
-    @GetMapping("/new")
-    public String showCreateForm(Model model) {
-        model.addAttribute("product", new Product());
-        model.addAttribute("categories", categoryRepository.findAll());
-        model.addAttribute("toppings", toppingService.getAll());
-        model.addAttribute("selectedToppings", Collections.emptyList());
-        return "products/form";
+    @PostMapping("/add")
+    public String addProduct(@ModelAttribute("productDTO") ProductDTO productDTO,
+                             RedirectAttributes redirectAttributes,
+                             Model model) {
+        try {
+            productService.createProductWithDetails(productDTO);
+            redirectAttributes.addFlashAttribute("successMessage", "Thêm sản phẩm thành công!");
+            return "redirect:/manager/products/manage";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Lỗi khi thêm sản phẩm: " + e.getMessage());
+            model.addAttribute("productDTO", productDTO);
+            model.addAttribute("allCategories", categoryService.getAllCategories());
+            model.addAttribute("allIngredients", ingredientService.getAllIngredients());
+            model.addAttribute("allToppings", toppingService.getAllToppings());
+            model.addAttribute("isEdit", false);
+            return "products/product_form";
+        }
     }
 
     @GetMapping("/edit/{id}")
-    public String showEditForm(@PathVariable Integer id, Model model) {
-        Product product = productService.getProductById(id);
-        model.addAttribute("product", product);
-        model.addAttribute("categories", categoryRepository.findAll());
-        model.addAttribute("toppings", toppingService.getAll());
+    public String showEditForm(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes) {
+        if (id == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "ID sản phẩm không hợp lệ");
+            return "redirect:/manager/products/manage";
+        }
+        try {
+            ProductDTO productDTO = productService.getProductDTOById(id);
+            List<Category> categories = categoryService.getAllCategories();
+            List<Ingredient> ingredients = ingredientService.getAllIngredients();
+            List<Topping> toppings = toppingService.getAllToppings();
 
-        List<Integer> selectedToppings = productToppingService.getByProductId(id)
-                .stream()
-                .map(pt -> pt.getTopping().getToppingId())
-                .collect(Collectors.toList());
-        model.addAttribute("selectedToppings", selectedToppings);
+            model.addAttribute("productDTO", productDTO);
+            model.addAttribute("allCategories", categories);
+            model.addAttribute("allIngredients", ingredients);
+            model.addAttribute("allToppings", toppings);
+            model.addAttribute("isEdit", true);
 
-        return "products/form";
+            return "products/product_form";
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy sản phẩm: " + e.getMessage());
+            return "redirect:/manager/products/manage";
+        }
     }
 
-    @PostMapping
-    public String createProduct(@ModelAttribute Product product,
-                                @RequestParam(required = false, name = "toppingIds") List<Integer> toppingIds,
-                                RedirectAttributes redirectAttributes,
-                                Model model) {
-
-        // Validate dữ liệu
-        List<String> errors = ProductValidator.validate(product);
-        if (!errors.isEmpty()) {
-            model.addAttribute("errors", errors);
-            model.addAttribute("product", product);
-            model.addAttribute("categories", categoryRepository.findAll());
-            model.addAttribute("toppings", toppingService.getAll());
-            model.addAttribute("selectedToppings", toppingIds != null ? toppingIds : Collections.emptyList());
-            return "products/form";
-        }
-
-        product.setCreatedAt(LocalDateTime.now());
-        product.setUpdatedAt(LocalDateTime.now());
-        product.setIsDeleted(false);
-
-        Product savedProduct = productService.saveProduct(product);
-
-        if (toppingIds != null) {
-            productToppingService.saveProductToppings(savedProduct.getProductId(), toppingIds);
-        }
-
-        redirectAttributes.addFlashAttribute("success", "Đã thêm món " + product.getName() + " thành công!");
-        return "redirect:/products";
-    }
-
-    @PostMapping("/{id}")
+    @PostMapping("/edit/{id}")
     public String updateProduct(@PathVariable Integer id,
-                                @ModelAttribute Product product,
-                                @RequestParam(required = false, name = "toppingIds") List<Integer> toppingIds,
+                                @ModelAttribute("productDTO") ProductDTO productDTO,
                                 RedirectAttributes redirectAttributes,
                                 Model model) {
-
-        product.setProductId(id);
-
-        List<String> errors = ProductValidator.validate(product);
-        if (!errors.isEmpty()) {
-            model.addAttribute("errors", errors);
-            model.addAttribute("product", product);
-            model.addAttribute("categories", categoryRepository.findAll());
-            model.addAttribute("toppings", toppingService.getAll());
-            model.addAttribute("selectedToppings", toppingIds != null ? toppingIds : Collections.emptyList());
-            return "products/form";
+        try {
+            productService.updateProductWithDetails(id, productDTO);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật sản phẩm thành công!");
+            return "redirect:/manager/products/manage";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Lỗi khi cập nhật sản phẩm: " + e.getMessage());
+            model.addAttribute("productDTO", productDTO);
+            model.addAttribute("allCategories", categoryService.getAllCategories());
+            model.addAttribute("allIngredients", ingredientService.getAllIngredients());
+            model.addAttribute("allToppings", toppingService.getAllToppings());
+            model.addAttribute("isEdit", true);
+            return "products/product_form";
         }
-
-        Product existing = productService.getProductById(id);
-        if (existing == null) {
-            redirectAttributes.addFlashAttribute("error", "Không tìm thấy sản phẩm!");
-            return "redirect:/products";
-        }
-
-        product.setCreatedAt(existing.getCreatedAt());
-        product.setIsDeleted(existing.getIsDeleted());
-        product.setUpdatedAt(LocalDateTime.now());
-
-        productService.saveProduct(product);
-        productToppingService.saveProductToppings(id, toppingIds);
-
-        redirectAttributes.addFlashAttribute("success", "Món " + product.getName() + " đã được cập nhật!");
-        return "redirect:/products";
     }
 
-    @GetMapping("/delete/{id}")
+    @PostMapping("/delete/{id}")
     public String deleteProduct(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
-        Product product = productService.getProductById(id);
-        if (product != null) {
-            product.setIsDeleted(true);
-            product.setUpdatedAt(LocalDateTime.now());
-            productService.saveProduct(product);
-            redirectAttributes.addFlashAttribute("success", "Đã xóa món " + product.getName() + " thành công!");
-        } else {
-            redirectAttributes.addFlashAttribute("error", "Không tìm thấy món để xóa!");
+        try {
+            productService.deleteProduct(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Xóa sản phẩm thành công!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi xóa sản phẩm: " + e.getMessage());
         }
-        return "redirect:/products";
+        return "redirect:/manager/products/manage";
+    }
+
+    // ==================== THÊM API CHO ORDER MANAGEMENT (NHỎ GỌN) ====================
+    @GetMapping("/api/products")
+    @ResponseBody
+    public List<ProductDTO> getAvailableProductsForOrder() {
+        try {
+            return productService.getAllProductsForOrder(); // Gọi service method mới
+        } catch (Exception e) {
+            return List.of(); // Trả về rỗng nếu lỗi
+        }
     }
 }

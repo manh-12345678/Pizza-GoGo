@@ -1,5 +1,6 @@
 package Group5_pizza.Pizza_GoGo.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -23,23 +24,25 @@ public class RestaurantTable {
     private Integer tableNumber;
 
     @Column(name = "Capacity", nullable = false, columnDefinition = "INT DEFAULT 1")
-    private Integer capacity;
+    private Integer capacity = 1;
 
     @Column(name = "QRCodeUrl", length = 1000)
     private String qrCodeUrl;
 
     @Column(name = "Status", nullable = false, length = 20, columnDefinition = "NVARCHAR(20) DEFAULT 'Available'")
-    private String status;
+    private String status = "Available";
 
-    @Column(name = "CreatedAt", columnDefinition = "DATETIME DEFAULT GETDATE()")
+    @Column(name = "CreatedAt", updatable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
     private LocalDateTime createdAt;
 
     @Column(name = "UpdatedAt")
     private LocalDateTime updatedAt;
 
     @Column(name = "IsDeleted", columnDefinition = "BIT DEFAULT 0")
-    private Boolean isDeleted;
+    private Boolean isDeleted = false;
 
     @OneToMany(mappedBy = "table")
+    @ToString.Exclude
+    @JsonManagedReference
     private List<Order> orders;
 }

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Đổi khuyến mãi | Pizza GoGo</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css?family=Josefin+Sans" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .promotion-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            height: 100%;
+        }
+        .promotion-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+        }
+        .points-badge {
+            background: linear-gradient(135deg, #fac564 0%, #e7a935 100%);
+            color: #1a1a1a;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: inline-block;
+        }
+        .points-required {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fac564;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/homepage}">
+                <span class="flaticon-pizza-1 mr-1"></span>Pizza<br/><small>Delicious</small>
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav">
+                <span class="oi oi-menu"></span> Menu
+            </button>
+            <div class="collapse navbar-collapse" id="ftco-nav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item"><a th:href="@{/homepage}" class="nav-link">Home</a></li>
+                    <li class="nav-item"><a th:href="@{/menu}" class="nav-link">Menu</a></li>
+                    <li class="nav-item active"><a th:href="@{/promotions}" class="nav-link">Khuyến mãi</a></li>
+                    <th:block th:if="${session.loggedInUser}">
+                        <li class="nav-item"><a th:href="@{/promotions/my-redemptions}" class="nav-link">Lịch sử đổi quà</a></li>
+                    </th:block>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section class="ftco-section">
+        <div class="container">
+            <div class="row justify-content-center mb-5 pb-3">
+                <div class="col-md-7 heading-section text-center ftco-animate">
+                    <h2 class="mb-4">Đổi khuyến mãi</h2>
+                    <div th:if="${customerPoints != null}" class="mb-4">
+                        <span class="points-badge">
+                            <i class="bi bi-star-fill"></i> Điểm của bạn: <span th:text="${customerPoints}">0</span>
+                        </span>
+                    </div>
+                    <div th:unless="${customerPoints != null}" class="mb-4">
+                        <span class="points-badge">
+                            <i class="bi bi-star-fill"></i> Điểm của bạn: 0
+                        </span>
+                        <p class="text-muted mt-2">Vui lòng <a th:href="@{/login}">đăng nhập</a> để xem điểm tích lũy</p>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${success}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <div th:if="${#lists.isEmpty(promotions)}" class="text-center">
+                <p class="text-muted">Hiện tại không có promotion nào khả dụng.</p>
+            </div>
+
+            <div class="row">
+                <div th:each="promotion : ${promotions}" class="col-md-4 mb-4">
+                    <div class="promotion-card">
+                        <div th:if="${promotion.imageUrl}" class="mb-3">
+                            <img th:src="${promotion.imageUrl}" class="img-fluid rounded" style="max-height: 200px; width: 100%; object-fit: cover;">
+                        </div>
+                        <h4 th:text="${promotion.name}">Tên promotion</h4>
+                        <p class="text-muted" th:text="${promotion.description}">Mô tả</p>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="points-required" th:text="${promotion.pointsRequired} + ' điểm'">0 điểm</span>
+                            <span th:if="${promotion.stockQuantity != null}" class="badge bg-info" th:text="'Còn: ' + ${promotion.stockQuantity}">Còn: 0</span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <form th:action="@{/promotions/redeem}" method="post" class="flex-grow-1">
+                                <input type="hidden" name="promotionId" th:value="${promotion.promotionId}">
+                                <button type="submit" 
+                                        class="btn btn-primary w-100"
+                                        th:disabled="${customerId == null or customerPoints == null or customerPoints < promotion.pointsRequired}">
+                                    <i class="bi bi-gift"></i> Đổi ngay
+                                </button>
+                            </form>
+                        </div>
+                        <div th:if="${promotion.type == 'PRODUCT' and promotion.productId != null}" class="mt-2">
+                            <small class="text-info">
+                                <i class="bi bi-info-circle"></i> Sản phẩm sẽ được thêm vào đơn hàng tiếp theo của bạn
+                            </small>
+                        </div>
+                        <div th:if="${customerId == null}" class="mt-2">
+                            <small class="text-muted">Vui lòng <a th:href="@{/login}">đăng nhập</a> để đổi promotion</small>
+                        </div>
+                        <div th:if="${customerId != null and customerPoints != null and customerPoints < promotion.pointsRequired}" class="mt-2">
+                            <small class="text-danger">Bạn không đủ điểm để đổi promotion này</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

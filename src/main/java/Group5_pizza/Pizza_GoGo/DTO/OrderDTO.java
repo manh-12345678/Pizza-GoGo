@@ -1,17 +1,30 @@
+// package Group5_pizza.Pizza_GoGo.DTO;
+// OrderDTO.java
 package Group5_pizza.Pizza_GoGo.DTO;
-
 import lombok.Data;
-
 import java.math.BigDecimal;
 import java.util.List;
-
 @Data
 public class OrderDTO {
-    private Integer orderId;       // ID đơn hàng (JS đọc là 'id')
-    private String table;          // Số bàn (JS đọc là 'table')
-    private String status;         // Trạng thái (JS đọc là 'status')
-    private String time;           // Thời gian đặt hàng (JS đọc là 'time')
-    private BigDecimal totalAmount;  // Tổng tiền đơn hàng (JS đọc là 'total')
-    private List<OrderItemDTO> items; // Danh sách các món hàng (JS đọc là 'items')
-    // private Integer guests;     // Thêm nếu cần
+    private Integer orderId;
+    private String table; // Chỉ số bàn (String)
+    private String status;
+    private String time; // HH:mm
+    private BigDecimal totalAmount;
+    private List<OrderItemDTO> items;
+    @Data
+    public static class OrderItemDTO {
+        private Integer orderDetailId;
+        private String name;
+        private Integer quantity;
+        private BigDecimal unitPrice;
+        private BigDecimal subtotal;
+        private List<ToppingDTO> toppings;
+        @Data
+        public static class ToppingDTO {
+            private Integer toppingId;
+            private String name;
+            private BigDecimal price;
+        }
+    }
 }

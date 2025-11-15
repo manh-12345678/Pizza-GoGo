@@ -1,24 +1,38 @@
 package Group5_pizza.Pizza_GoGo.repository;
 
 import Group5_pizza.Pizza_GoGo.model.Review;
+import Group5_pizza.Pizza_GoGo.model.enums.ReviewStatus;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Integer> {
 
-    // Tìm đánh giá theo đơn hàng (chưa bị xóa)
-    List<Review> findByOrderOrderIdAndIsDeletedFalse(Integer orderId);
+    @EntityGraph(attributePaths = {"orderDetail", "orderDetail.product", "product", "account"})
+    List<Review> findByOrderOrderIdAndStatusNotAndIsDeletedFalse(Integer orderId, ReviewStatus status);
 
-    // ⭐ THAY ĐỔI TỪ CustomerId SANG AccountId ⭐
-    // Tìm đánh giá theo tài khoản (chưa bị xóa)
-    List<Review> findByAccountUserIdAndIsDeletedFalse(Integer userId); // Đổi tên phương thức và trường
+    @EntityGraph(attributePaths = {"orderDetail", "orderDetail.product", "product", "account"})
+    List<Review> findByAccountUserIdAndStatusNotAndIsDeletedFalse(Integer userId, ReviewStatus status);
 
-    // (Tùy chọn) Tìm theo rating
-    List<Review> findByRatingAndIsDeletedFalse(Integer rating);
+    @EntityGraph(attributePaths = {"orderDetail", "orderDetail.product", "product", "account"})
+    List<Review> findByProductProductIdAndStatusAndIsDeletedFalse(Integer productId, ReviewStatus status);
 
-    // (Tùy chọn) Tìm tất cả đánh giá chưa bị xóa (cho admin)
-    List<Review> findByIsDeletedFalse();
+    @EntityGraph(attributePaths = {"orderDetail", "orderDetail.product", "product", "account"})
+    List<Review> findByStatusInOrderByCreatedAtDesc(Collection<ReviewStatus> statuses);
+
+    Optional<Review> findByOrderDetailOrderDetailIdAndAccountUserId(Integer orderDetailId, Integer userId);
+
+    @Query("select r from Review r " +
+            "left join fetch r.orderDetail od " +
+            "left join fetch r.product p " +
+            "left join fetch r.account a " +
+            "where r.order.orderId = :orderId")
+    List<Review> findAllForOrder(@Param("orderId") Integer orderId);
 }

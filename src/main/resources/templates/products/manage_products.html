@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{manager/fragments/layout :: managerHead('Quản lý sản phẩm', ~{::extraHead})}">
+    <th:block th:fragment="extraHead">
+        <style>
+            .card { margin-bottom: 20px; }
+            .search-box { max-width: 500px; }
+            .table-actions { white-space: nowrap; }
+            .btn-sm { margin: 2px; }
+            .product-img { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; }
+        </style>
+    </th:block>
+</head>
+<body>
+<div th:replace="~{manager/fragments/layout :: managerLayout('products', ~{::pageContent})}">
+    <div th:fragment="pageContent">
+        <div class="container px-0">
+            <h2 class="mb-4"><i class="bi bi-basket"></i> Quản lý Sản phẩm</h2>
+
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle"></i> <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <form th:action="@{/manager/products/manage}" method="get" class="d-flex search-box">
+                                <input type="text" name="search" class="form-control me-2"
+                                       placeholder="Tìm kiếm sản phẩm..." th:value="${search}">
+
+                                <select name="categoryId" class="form-select me-2" style="width: 200px;">
+                                    <option value="">-- Tất cả Category --</option>
+                                    <option th:each="cat : ${categories}"
+                                            th:value="${cat.categoryId}"
+                                            th:text="${cat.getCategoryName()}"
+                                            th:selected="${categoryId != null && categoryId == cat.categoryId}"></option>
+                                </select>
+
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> Tìm
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a th:href="@{/manager/products/add}" class="btn btn-success">
+                                <i class="bi bi-plus-circle"></i> Thêm Sản phẩm Mới
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div th:if="${products == null || products.isEmpty()}" class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Không có sản phẩm nào.
+                    </div>
+
+                    <div th:if="${products != null && !products.isEmpty()}" class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên Sản phẩm</th>
+                                <th>Ảnh</th>
+                                <th>Loại</th>
+                                <th>Giá</th>
+                                <th>Tồn kho / Ngày</th>
+                                <th>Số NVL</th>
+                                <th class="text-center">Thao tác</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="product : ${products}">
+                                <td th:text="${product.productId}"></td>
+                                <td>
+                                    <strong th:text="${product.name}"></strong>
+                                </td>
+                                <td>
+                                    <img th:src="${product.imgUrl != null ? product.imgUrl : '/images/pizza-1.jpg'}" alt="img" class="product-img">
+                                </td>
+                                <td th:text="${product.categoryName}"></td>
+                                <td th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                                <td th:text="${product.quantityPerDay}"></td>
+                                <td>
+                                    <span class="badge bg-info" th:text="${product.ingredients != null ? product.ingredients.size() : 0} + ' NVL'"></span>
+                                </td>
+                                <td class="text-center table-actions">
+                                    <a th:href="@{/manager/products/edit/{id}(id=${product.productId})}"
+                                       class="btn btn-sm btn-warning" title="Chỉnh sửa">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form th:action="@{/manager/products/delete/{id}(id=${product.productId})}"
+                                          method="post" style="display:inline;"
+                                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?');">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{manager/fragments/layout :: managerScripts(~{manager/fragments/layout :: emptyScripts})}"></th:block>
+</body>
+</html>
