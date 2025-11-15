@@ -1,95 +1,136 @@
+// File: Group5_pizza.Pizza_GoGo.controller.ToppingController.java
 package Group5_pizza.Pizza_GoGo.controller;
 
-import Group5_pizza.Pizza_GoGo.model.Topping;
+import Group5_pizza.Pizza_GoGo.DTO.ToppingDTO;
+import Group5_pizza.Pizza_GoGo.model.Ingredient;
+import Group5_pizza.Pizza_GoGo.service.IngredientService;
 import Group5_pizza.Pizza_GoGo.service.ToppingService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.Collections;
 import java.util.List;
 
+/**
+ * Controller Quản lý Topping (ĐÃ ĐỒNG NHẤT)
+ * Sử dụng /manage, /add, /edit
+ */
 @Controller
-@RequestMapping("/toppings")
+@RequestMapping({"/toppings","/manager/toppings"})
+@RequiredArgsConstructor
 public class ToppingController {
 
     private final ToppingService toppingService;
+    private final IngredientService ingredientService;
 
-    public ToppingController(ToppingService toppingService) {
-        this.toppingService = toppingService;
-    }
-
-    @GetMapping
-    public String viewAll(@RequestParam(value = "name", required = false) String name, Model model) {
+    /**
+     * Hiển thị trang quản lý (đồng nhất với Combo)
+     */
+    @GetMapping("/manage")
+    public String listToppings(@RequestParam(required = false) String search, Model model) {
         try {
-            List<Topping> toppings;
-            if (name != null && !name.trim().isEmpty()) {
-                toppings = toppingService.searchByName(name); // Cần thêm hàm này vào service
-            } else {
-                toppings = toppingService.getAll();
-            }
-            model.addAttribute("toppings", toppings != null ? toppings : Collections.emptyList());
-            model.addAttribute("searchName", name);
+            List<ToppingDTO> toppings = toppingService.searchToppings(search);
+            model.addAttribute("toppings", toppings);
+            model.addAttribute("search", search);
+            return "toppings/manage_toppings"; // ❗ Trả về file mới
         } catch (Exception e) {
-            model.addAttribute("toppings", Collections.emptyList());
-            model.addAttribute("error", "Đã xảy ra lỗi khi tải danh sách topping.");
+            model.addAttribute("errorMessage", "Lỗi tải danh sách topping: " + e.getMessage());
+            return "toppings/manage_toppings";
         }
-        return "toppings/list";
     }
 
-    @GetMapping("/new")
-    public String newForm(Model model) {
-        model.addAttribute("topping", new Topping());
-        return "toppings/form";
+    /**
+     * Hiển thị form Thêm mới
+     */
+    @GetMapping("/add")
+    public String showAddForm(Model model) {
+        try {
+            List<Ingredient> ingredients = ingredientService.getAllIngredients();
+            model.addAttribute("toppingDTO", new ToppingDTO());
+            model.addAttribute("allIngredients", ingredients);
+            model.addAttribute("isEdit", false);
+            return "toppings/topping_form"; // ❗ Trả về file mới
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Lỗi tải trang thêm mới: " + e.getMessage());
+            return "redirect:/manager/toppings/manage";
+        }
     }
 
+    /**
+     * Xử lý Thêm mới
+     */
+    @PostMapping("/add")
+    public String addTopping(@ModelAttribute("toppingDTO") ToppingDTO toppingDTO,
+                             RedirectAttributes redirectAttributes, Model model) {
+        try {
+            toppingService.createToppingWithIngredients(toppingDTO);
+            redirectAttributes.addFlashAttribute("successMessage", "Thêm topping thành công!");
+            return "redirect:/manager/toppings/manage";
+        } catch (Exception e) {
+            model.addAttribute("errorMessage", "Lỗi khi thêm topping: " + e.getMessage());
+            model.addAttribute("toppingDTO", toppingDTO);
+            model.addAttribute("allIngredients", ingredientService.getAllIngredients());
+            model.addAttribute("isEdit", false);
+            return "toppings/topping_form"; // ❗ Trả về file mới
+        }
+    }
+
+    /**
+     * Hiển thị form Chỉnh sửa
+     */
     @GetMapping("/edit/{id}")
-    public String editForm(@PathVariable Integer id, Model model) {
-        Topping topping = toppingService.getById(id);
-        if (topping == null) {
-            // Thêm thông báo lỗi và chuyển hướng nếu không tìm thấy
-            return "redirect:/toppings";
+    public String showEditForm(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes) {
+        if (id == null) { // ❗ FIX: Tránh TypeMismatchException
+            redirectAttributes.addFlashAttribute("errorMessage", "ID topping không hợp lệ");
+            return "redirect:/manager/toppings/manage";
         }
-        model.addAttribute("topping", topping);
-        return "toppings/form";
+        try {
+            ToppingDTO toppingDTO = toppingService.getToppingDTOById(id);
+            List<Ingredient> ingredients = ingredientService.getAllIngredients();
+
+            model.addAttribute("toppingDTO", toppingDTO);
+            model.addAttribute("allIngredients", ingredients);
+            model.addAttribute("isEdit", true);
+            return "toppings/topping_form"; // ❗ Trả về file mới
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy topping: " + e.getMessage());
+            return "redirect:/manager/toppings/manage";
+        }
     }
 
-    @PostMapping
-    public String save(@ModelAttribute Topping topping, RedirectAttributes redirectAttributes) {
+    /**
+     * Xử lý Chỉnh sửa
+     */
+    @PostMapping("/edit/{id}")
+    public String updateTopping(@PathVariable Integer id,
+                                @ModelAttribute("toppingDTO") ToppingDTO toppingDTO,
+                                RedirectAttributes redirectAttributes, Model model) {
         try {
-            if (topping.getToppingId() == null) {
-                toppingService.create(topping);
-                redirectAttributes.addFlashAttribute("success", "Đã thêm topping mới thành công!");
-            } else {
-                toppingService.update(topping.getToppingId(), topping);
-                redirectAttributes.addFlashAttribute("success", "Đã cập nhật topping thành công!");
-            }
+            toppingService.updateToppingWithIngredients(id, toppingDTO);
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật topping thành công!");
+            return "redirect:/manager/toppings/manage";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Đã xảy ra lỗi khi lưu topping.");
+            model.addAttribute("errorMessage", "Lỗi khi cập nhật topping: " + e.getMessage());
+            model.addAttribute("toppingDTO", toppingDTO);
+            model.addAttribute("allIngredients", ingredientService.getAllIngredients());
+            model.addAttribute("isEdit", true);
+            return "toppings/topping_form"; // ❗ Trả về file mới
         }
-        return "redirect:/toppings";
     }
 
-    @GetMapping("/delete/{id}")
-    public String delete(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+    /**
+     * Xử lý Xóa (mềm)
+     */
+    @PostMapping("/delete/{id}")
+    public String deleteTopping(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         try {
-            toppingService.softDelete(id);
-            redirectAttributes.addFlashAttribute("success", "Đã xóa topping thành công!");
+            toppingService.deleteTopping(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Xóa topping thành công!");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Đã xảy ra lỗi khi xóa topping.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Lỗi khi xóa topping: " + e.getMessage());
         }
-        return "redirect:/toppings";
-    }
-
-    @PostMapping("/{id}")
-    public String saveUpdate(@PathVariable Integer id, @ModelAttribute Topping topping, RedirectAttributes redirectAttributes) {
-        try {
-            toppingService.update(id, topping);
-            redirectAttributes.addFlashAttribute("success", "Đã cập nhật topping thành công!");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Đã xảy ra lỗi khi cập nhật topping.");
-        }
-        return "redirect:/toppings";
+        return "redirect:/manager/toppings/manage";
     }
 }

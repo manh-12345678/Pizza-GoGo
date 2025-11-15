@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{manager/fragments/layout :: managerHead('Quản lý nguyên vật liệu', ~{::extraHead})}">
+    <th:block th:fragment="extraHead">
+        <style>
+            .card { margin-bottom: 20px; }
+            .search-box { max-width: 500px; }
+            .table-actions { white-space: nowrap; }
+            .btn-sm { margin: 2px; }
+            .low-stock { background-color: #fff3cd; }
+        </style>
+    </th:block>
+</head>
+<body>
+<div th:replace="~{manager/fragments/layout :: managerLayout('ingredients', ~{::pageContent})}">
+    <div th:fragment="pageContent">
+        <div class="container px-0">
+            <h2 class="mb-4"><i class="bi bi-box-seam"></i> Quản lý Nguyên vật liệu</h2>
+
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle"></i> <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${lowStockWarning}" class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i> <span th:text="${lowStockWarning}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <form th:action="@{/manager/ingredients/manage}" method="get" class="d-flex search-box">
+                                <input type="text" name="search" class="form-control me-2"
+                                       placeholder="Tìm kiếm NVL..." th:value="${search}">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> Tìm
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a th:href="@{/manager/ingredients/add}" class="btn btn-success">
+                                <i class="bi bi-plus-circle"></i> Thêm NVL Mới
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div th:if="${ingredients == null || ingredients.isEmpty()}" class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Không tìm thấy nguyên vật liệu nào.
+                    </div>
+
+                    <div th:if="${ingredients != null && !ingredients.isEmpty()}" class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên</th>
+                                <th>Đơn vị</th>
+                                <th>Tồn kho</th>
+                                <th>Giá vốn</th>
+                                <th>Tồn kho tối thiểu</th>
+                                <th>Trạng thái</th>
+                                <th class="text-center">Thao tác</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="ingredient : ${ingredients}"
+                                th:classappend="${ingredient.isLowStock} ? 'low-stock'">
+                                <td th:text="${ingredient.ingredientId}"></td>
+                                <td>
+                                    <strong th:text="${ingredient.name}"></strong>
+                                </td>
+                                <td th:text="${ingredient.unit}"></td>
+                                <td>
+                                    <span th:text="${#numbers.formatDecimal(ingredient.stockQuantity, 1, 2)}"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${ingredient.unitPrice != null ? #numbers.formatDecimal(ingredient.unitPrice, 1, 2) + ' đ' : 'N/A'}"></span>
+                                </td>
+                                <td>
+                                    <span th:text="${ingredient.minimumStock != null ? #numbers.formatDecimal(ingredient.minimumStock, 1, 2) : 'N/A'}"></span>
+                                </td>
+                                <td>
+                                    <span th:if="${ingredient.isLowStock}" class="badge bg-warning text-dark">
+                                        <i class="bi bi-exclamation-triangle"></i> Cảnh báo
+                                    </span>
+                                    <span th:if="${!ingredient.isLowStock}" class="badge bg-success">
+                                        <i class="bi bi-check-circle"></i> OK
+                                    </span>
+                                </td>
+                                <td class="text-center table-actions">
+                                    <a th:href="@{/manager/ingredients/edit/{id}(id=${ingredient.ingredientId})}"
+                                       class="btn btn-sm btn-warning" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form th:action="@{/manager/ingredients/delete/{id}(id=${ingredient.ingredientId})}"
+                                          method="post" style="display:inline;"
+                                          onsubmit="return confirm('Bạn có chắc muốn xóa nguyên vật liệu này?');">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{manager/fragments/layout :: managerScripts(~{manager/fragments/layout :: emptyScripts})}"></th:block>
+</body>
+</html>

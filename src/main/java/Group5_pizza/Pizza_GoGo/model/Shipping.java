@@ -1,5 +1,6 @@
 package Group5_pizza.Pizza_GoGo.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -17,6 +18,8 @@ public class Shipping {
 
     @ManyToOne
     @JoinColumn(name = "OrderId", nullable = false)
+    @ToString.Exclude
+    @JsonBackReference
     private Order order;
 
     @Column(name = "Address", nullable = false, length = 300)
@@ -35,7 +38,7 @@ public class Shipping {
     private String shipperPhone;
 
     @Column(name = "Status", nullable = false, length = 20, columnDefinition = "NVARCHAR(20) DEFAULT 'Pending'")
-    private String status;
+    private String status = "Pending";
 
     @Column(name = "EstimatedDelivery")
     private LocalDateTime estimatedDelivery;
@@ -43,7 +46,7 @@ public class Shipping {
     @Column(name = "DeliveredAt")
     private LocalDateTime deliveredAt;
 
-    @Column(name = "CreatedAt", columnDefinition = "DATETIME DEFAULT GETDATE()")
+    @Column(name = "CreatedAt", updatable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
     private LocalDateTime createdAt;
 
     @Column(name = "UpdatedAt")

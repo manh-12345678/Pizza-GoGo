@@ -63,17 +63,14 @@
         <div th:if="${error}" style="color: #ff3333;" th:text="${error}"></div>
     </div>
 
-<form th:action="${category.categoryId} == null ? @{/categories} : @{'/categories/' + ${category.categoryId}}"
-      th:object="${category}" method="post">
-    <label for="categoryName">Tên Category:</label>
-    <input type="text" id="categoryName" th:field="*{categoryName}" placeholder="Nhập tên category..." required>
+    <form th:action="${category.categoryId} == null ? @{/manager/categories} : @{'/manager/categories/' + ${category.categoryId}}"
+        th:object="${category}" method="post">
+        <label for="categoryName">Tên Category:</label>
+        <input type="text" id="categoryName" th:field="*{categoryName}" placeholder="Nhập tên category..." required>
 
-    <label for="description">Mô tả:</label>
-    <input type="text" id="description" th:field="*{description}" placeholder="Nhập mô tả category...">
-
-    <button type="submit" th:text="${category.categoryId} == null ? 'Thêm' : 'Cập nhật'"></button>
-    <a th:href="@{/categories}" class="btn">Quay lại</a>
-</form>
+        <button type="submit" th:text="${category.categoryId} == null ? 'Thêm' : 'Cập nhật'"></button>
+        <a th:href="@{/manager/categories}" class="btn">Quay lại</a>
+    </form>
 </body>
 
 </html>

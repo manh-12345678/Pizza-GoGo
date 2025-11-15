@@ -62,7 +62,7 @@ public class Account {
     @Column(name = "IsConfirmed", nullable = false) // Nên để nullable = false
     private Boolean isConfirmed = false;
 
-    // ⭐ THÊM MỚI: Liên kết OneToMany tới Review ⭐
+    // Liên kết OneToMany tới Review
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @ToString.Exclude // Tránh vòng lặp toString
     @JsonManagedReference // Phía "một" của quan hệ

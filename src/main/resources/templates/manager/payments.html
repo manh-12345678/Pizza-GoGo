@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{manager/fragments/layout :: managerHead('Quản lý thanh toán', ~{::extraHead})}">
+    <th:block th:fragment="extraHead">
+        <style>
+            .payment-card { border-left: 4px solid #007bff; margin-bottom: 15px; }
+            .payment-card.pending { border-left-color: #ffc107; }
+            .payment-card.completed { border-left-color: #28a745; }
+            .payment-card.failed { border-left-color: #dc3545; }
+            .payment-card.cancelled { border-left-color: #6c757d; }
+            .status-badge {
+                padding: 0.25rem 0.5rem;
+                border-radius: 0.25rem;
+                font-size: 0.875rem;
+                font-weight: 500;
+            }
+            .status-pending { background-color: #fff3cd; color: #856404; }
+            .status-completed { background-color: #d4edda; color: #155724; }
+            .status-failed { background-color: #f8d7da; color: #721c24; }
+            .status-cancelled { background-color: #e2e3e5; color: #383d41; }
+        </style>
+    </th:block>
+</head>
+<body>
+<div th:replace="~{manager/fragments/layout :: managerLayout('payments', ~{::pageContent})}">
+    <div th:fragment="pageContent">
+        <h2 class="mb-4"><i class="bi bi-credit-card-2-front"></i> Quản lý thanh toán</h2>
+
+        <!-- Filter -->
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <form method="get" action="/manager/payments" class="row g-3">
+                    <div class="col-md-3">
+                        <input type="number" name="orderId" class="form-control" placeholder="Tìm theo ID đơn hàng" th:value="${selectedOrderId}">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-select">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="PENDING" th:selected="${selectedStatus == 'PENDING'}">Đang chờ</option>
+                            <option value="COMPLETED" th:selected="${selectedStatus == 'COMPLETED'}">Hoàn thành</option>
+                            <option value="FAILED" th:selected="${selectedStatus == 'FAILED'}">Thất bại</option>
+                            <option value="CANCELLED" th:selected="${selectedStatus == 'CANCELLED'}">Đã hủy</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="paymentMethod" class="form-select">
+                            <option value="">Tất cả phương thức</option>
+                            <option value="COD" th:selected="${selectedPaymentMethod == 'COD'}">COD</option>
+                            <option value="VNPAY" th:selected="${selectedPaymentMethod == 'VNPAY'}">VNPAY</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-search"></i> Tìm kiếm
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle"></i> <span th:text="${message}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i> <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Payment List -->
+        <div class="row">
+            <div class="col-12">
+                <div th:if="${payments == null or payments.isEmpty()}" class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Không có thanh toán nào.
+                </div>
+
+                <div th:each="payment : ${payments}" class="card payment-card shadow-sm mb-3" th:classappend="${'payment-card ' + payment.status.toLowerCase()}">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5 class="card-title">
+                                    <i class="bi bi-receipt"></i> Thanh toán #<span th:text="${payment.paymentId}"></span>
+                                </h5>
+                                <p class="card-text mb-2">
+                                    <strong>Đơn hàng:</strong> #<span th:text="${payment.order != null ? payment.order.orderId : 'N/A'}"></span><br>
+                                    <strong>Tài khoản:</strong> <span th:text="${payment.account != null ? payment.account.username : 'N/A'}"></span><br>
+                                    <strong>Phương thức:</strong>
+                                    <span th:if="${payment.paymentMethod == 'COD'}" class="badge bg-info">
+                                        <i class="bi bi-cash-coin"></i> COD
+                                    </span>
+                                    <span th:if="${payment.paymentMethod == 'VNPAY'}" class="badge bg-warning">
+                                        <i class="bi bi-credit-card"></i> VNPAY
+                                    </span><br>
+                                    <strong>Số tiền:</strong>
+                                    <span class="text-success fw-bold" th:text="${#numbers.formatDecimal(payment.amount, 0, 'DEFAULT', 0, 'DEFAULT')} + ' ₫'"></span><br>
+                                    <strong>Trạng thái:</strong>
+                                    <span class="status-badge"
+                                          th:classappend="${'status-' + payment.status.toLowerCase()}"
+                                          th:text="${payment.status}"></span><br>
+                                    <strong>Ngày tạo:</strong>
+                                    <span th:text="${payment.createdAt != null ? #temporals.format(payment.createdAt, 'dd/MM/yyyy HH:mm:ss') : 'N/A'}"></span><br>
+                                    <strong>Ngày thanh toán:</strong>
+                                    <span th:text="${payment.paymentDate != null ? #temporals.format(payment.paymentDate, 'dd/MM/yyyy HH:mm:ss') : 'Chưa thanh toán'}"></span><br>
+                                    <span th:if="${payment.transactionId != null}">
+                                        <strong>Mã giao dịch:</strong> <span th:text="${payment.transactionId}"></span><br>
+                                    </span>
+                                    <span th:if="${payment.notes != null and !payment.notes.isEmpty()}">
+                                        <strong>Ghi chú:</strong> <span th:text="${payment.notes}"></span>
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="btn-group-vertical w-100" role="group">
+                                    <a th:href="@{/manager/payments/{id}(id=${payment.paymentId})}"
+                                       class="btn btn-sm btn-outline-primary mb-2">
+                                        <i class="bi bi-eye"></i> Xem chi tiết
+                                    </a>
+                                    <form th:action="@{/manager/payments/{id}/confirm(id=${payment.paymentId})}"
+                                          method="post"
+                                          th:if="${payment.paymentMethod == 'COD' and payment.status == 'PENDING'}"
+                                          style="display: inline;">
+                                        <button type="submit" class="btn btn-sm btn-success w-100 mb-2"
+                                                onclick="return confirm('Xác nhận thanh toán COD này?')">
+                                            <i class="bi bi-check-circle"></i> Xác nhận COD
+                                        </button>
+                                    </form>
+                                    <form th:action="@{/manager/payments/{id}/cancel(id=${payment.paymentId})}"
+                                          method="post"
+                                          th:if="${payment.status == 'PENDING'}"
+                                          style="display: inline;">
+                                        <button type="submit" class="btn btn-sm btn-danger w-100"
+                                                onclick="return confirm('Bạn có chắc muốn hủy thanh toán này?')">
+                                            <i class="bi bi-x-circle"></i> Hủy thanh toán
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{manager/fragments/layout :: managerScripts(~{manager/fragments/layout :: emptyScripts})}"></th:block>
+</body>
+</html>

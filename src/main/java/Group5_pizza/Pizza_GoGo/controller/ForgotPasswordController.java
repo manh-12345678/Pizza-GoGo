@@ -21,27 +21,37 @@ public class ForgotPasswordController {
 
     private final AccountService accountService;
     private final MailService emailService;
-    private final TokenCacheService tokenCacheService; // Dùng Redis cache
+    private final TokenCacheService tokenCacheService; // ✅ Dùng Redis cache
 
     // Hiển thị form quên mật khẩu
     @GetMapping("/forgot-password")
     public String showForgotPasswordForm() {
-        return "forgot/forgot-password"; // nằm trong folder forgot/
+        return "forgot/forgot-password"; // ✅ nằm trong folder forgot/
     }
 
     // Xử lý gửi mail reset password
     @PostMapping("/forgot-password")
     public String processForgotPassword(@RequestParam("email") String email,
                                         RedirectAttributes redirectAttributes) {
+        if (email == null || email.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Email không được để trống!");
+            return "redirect:/forgot-password";
+        }
         Account account = accountService.findByEmail(email);
         if (account == null) {
             redirectAttributes.addFlashAttribute("error", "Không tìm thấy tài khoản với email này!");
             return "redirect:/forgot-password";
         }
 
-        // Tạo token và lưu vào Redis
+        // ✅ Tạo token và lưu vào Redis
         String token = UUID.randomUUID().toString();
-        tokenCacheService.saveToken(token, account.getUsername());
+        String username = account.getUsername();
+        if (username != null && !username.trim().isEmpty()) {
+            tokenCacheService.saveToken(token, username);
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Tài khoản không hợp lệ!");
+            return "redirect:/forgot-password";
+        }
 
         String resetLink = "http://localhost:8080/reset-password?token=" + token;
         String subject = "Đặt lại mật khẩu Pizza GoGo 🍕";
@@ -59,10 +69,14 @@ public class ForgotPasswordController {
     // Hiển thị form nhập mật khẩu mới
     @GetMapping("/reset-password")
     public String showResetPasswordForm(@RequestParam("token") String token, Model model) {
+        if (token == null || token.trim().isEmpty()) {
+            model.addAttribute("error", "Token không hợp lệ!");
+            return "forgot/reset-password";
+        }
         String username = tokenCacheService.getUsernameByToken(token);
         if (username == null) {
             model.addAttribute("error", "Token không hợp lệ hoặc đã hết hạn!");
-            return "forgot/reset-password"; // view trong folder forgot/
+            return "forgot/reset-password"; // ✅ view trong folder forgot/
         }
 
         model.addAttribute("token", token);
@@ -74,6 +88,14 @@ public class ForgotPasswordController {
     public String processResetPassword(@RequestParam("token") String token,
                                        @RequestParam("password") String newPassword,
                                        RedirectAttributes redirectAttributes) {
+        if (token == null || token.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Token không hợp lệ!");
+            return "redirect:/forgot-password";
+        }
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Mật khẩu không được để trống!");
+            return "redirect:/reset-password?token=" + token;
+        }
 
         String username = tokenCacheService.getUsernameByToken(token);
         if (username == null) {
@@ -83,7 +105,7 @@ public class ForgotPasswordController {
 
         boolean result = accountService.resetPassword(username, newPassword);
         if (result) {
-            tokenCacheService.deleteToken(token); // Xóa token sau khi dùng
+            tokenCacheService.deleteToken(token); // ✅ Xóa token sau khi dùng
             redirectAttributes.addFlashAttribute("success", "Đổi mật khẩu thành công! Hãy đăng nhập lại.");
             return "redirect:/login";
         } else {

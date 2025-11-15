@@ -1,601 +1,603 @@
 <!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Quản Lý Đơn Hàng - Admin Dashboard</title>
-
-    <!-- Optional: Spring CSRF token (server thường inject vào layout tự động) -->
-    <!-- <meta name="_csrf" content="${_csrf.token}" />
-    <meta name="_csrf_header" content="${_csrf.headerName}" /> -->
-
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <style>
-        /* --- Theme variables --- */
-        :root{
-            --bg-body: #0d0d0d;
-            --bg-darker: #1a1a1a;
-            --muted: #9ca3af;
-            --primary: #8b5cf6;
-            --border: #2d2d2d;
-            --card: #252525;
-            --text: #f2f2f2;
-        }
-
-        body{
-            background: var(--bg-body);
-            color: var(--text);
-            font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-            margin: 0;
-            height: 100vh;
-        }
-
-        .d-flex { display:flex; }
-        .flex-column { flex-direction: column; }
-        .flex-grow-1 { flex:1; }
-
-        /* Sidebar */
-        .sidebar{
-            width: 256px;
-            background: var(--bg-darker);
-            border-right: 1px solid var(--border);
-            display:flex;
-            flex-direction:column;
-            overflow-y:auto;
-        }
-
-        .sidebar .p-4 { padding:1rem; }
-        .nav-link { color: var(--muted); text-decoration:none; display:flex; align-items:center; gap:12px; border-radius:8px; padding:0.75rem; }
-        .nav-link:hover { background: #2d2d2d; color:var(--text); }
-        .nav-link.active { background: var(--primary); color:#fff; }
-
-        .avatar{ width:40px; height:40px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:var(--primary); color:#fff; }
-
-        /* Main content */
-        main { padding:1rem; gap:16px; display:flex; align-items:flex-start; overflow:hidden; }
-
-        /* Orders grid */
-        .orders-grid { overflow-y:auto; padding-right:8px; }
-        .card-order {
-            background: var(--bg-darker);
-            border: 1px solid var(--border);
-            border-radius:12px;
-            padding:16px;
-            transition: all .18s ease;
-            cursor:pointer;
-        }
-
-        .card-order:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.45); border-color: var(--primary); background: var(--card); }
-        .card-order.selected { border-color: var(--primary); background: var(--card); box-shadow: 0 12px 32px rgba(139,92,246,0.12); }
-
-        .badge { font-weight:600; padding:0.3rem 0.6rem; border-radius:8px; }
-        .badge-pending { background: #f59e0b; color:#1f1f1f; }
-        .badge-preparing { background: #06b6d4; color:#fff; }
-        .badge-ready { background: #10b981; color:#fff; }
-        .badge-completed { background: #6b7280; color:#fff; }
-
-        /* Details panel */
-        .details-panel {
-            width:380px;
-            background: var(--bg-darker);
-            border:1px solid var(--border);
-            border-radius:12px;
-            display:flex;
-            flex-direction:column;
-            max-height: calc(100vh - 48px);
-            overflow:hidden;
-        }
-
-        .details-panel .p-4 { padding:1rem; }
-        .details-panel .overflow-y-auto { overflow-y:auto; }
-
-        /* form controls look */
-        .form-control, .form-select {
-            background: var(--bg-darker);
-            color: var(--text);
-            border:1px solid var(--border);
-        }
-
-        .form-control:focus, .form-select:focus {
-            outline: none;
-            box-shadow: 0 0 0 0.25rem rgba(139,92,246,0.16);
-            border-color: var(--primary);
-        }
-
-        /* Utilities & responsive */
-        .gap-3 { gap:12px; }
-        .gap-4 { gap:16px; }
-        .space-y-2 > * + * { margin-top:8px; }
-        @media(max-width:900px){
-            .sidebar{ width:200px; }
-            main { flex-direction:column; }
-            .details-panel{ width:100%; position:relative; max-height:unset; }
-        }
-
-        /* small helpers */
-        .muted { color: var(--muted); }
-        .text-primary { color: var(--primary); font-weight:700; }
-    </style>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{manager/fragments/layout :: managerHead('Quản lý đơn hàng', ~{::extraHead})}">
+    <th:block th:fragment="extraHead">
+        <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+        <style>
+            .order-card { border-left: 4px solid #007bff; margin-bottom: 15px; }
+            .order-card.pending { border-left-color: #ffc107; }
+            .order-card.processing { border-left-color: #17a2b8; }
+            .order-card.completed { border-left-color: #28a745; }
+            .order-card.cancelled { border-left-color: #dc3545; }
+            .order-item { border-bottom: 1px solid #dee2e6; padding: 10px 0; }
+            .order-item:last-child { border-bottom: none; }
+            .topping-item { margin-left: 20px; color: #28a745; font-size: 0.9em; }
+            .order-details { max-height: 400px; overflow-y: auto; }
+            .collapse-btn { cursor: pointer; }
+            .topping-list { max-height: 200px; overflow-y: auto; margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px; }
+        </style>
+    </th:block>
 </head>
 <body>
-<div class="d-flex" style="height:100vh;">
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="p-4 border-bottom" style="border-color:var(--border);">
-            <h1 style="margin:0;color:var(--primary);font-size:1.25rem">RestroAdmin</h1>
-            <p class="muted" style="margin:4px 0 0;font-size:.85rem">Quản Lý Đơn Hàng</p>
-        </div>
+<div th:replace="~{manager/fragments/layout :: managerLayout('orders', ~{::pageContent})}">
+    <div th:fragment="pageContent">
+        <div class="container-fluid px-0">
+            <h2 class="mb-4"><i class="bi bi-receipt"></i> Quản lý đơn hàng</h2>
 
-        <nav style="padding:12px; display:flex; flex-direction:column; gap:8px;">
-            <a href="#" id="filter-all" class="nav-link active">Tất Cả Đơn Hàng <span id="count-all" style="margin-left:auto" class="muted small"></span></a>
-            <a href="#" id="filter-pending" class="nav-link">Đang Chờ <span id="count-pending" class="ms-auto badge badge-pending">0</span></a>
-            <a href="#" id="filter-preparing" class="nav-link">Đang Chuẩn Bị <span id="count-preparing" class="ms-auto badge badge-preparing">0</span></a>
-            <a href="#" id="filter-ready" class="nav-link">Sẵn Sàng <span id="count-ready" class="ms-auto badge badge-ready">0</span></a>
-            <a href="#" id="filter-completed" class="nav-link">Hoàn Thành <span id="count-completed" class="ms-auto badge badge-completed">0</span></a>
-        </nav>
-
-        <div style="margin-top:auto;padding:12px;border-top:1px solid var(--border);">
-            <div style="display:flex;align-items:center;gap:12px">
-                <div class="avatar">AD</div>
-                <div>
-                    <div style="font-weight:600">Admin</div>
-                    <div class="muted" style="font-size:.85rem">Quản Lý</div>
-                </div>
-            </div>
-        </div>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="flex-grow-1 d-flex gap-4">
-        <!-- Orders list -->
-        <section class="flex-grow-1 d-flex flex-column gap-4">
-            <div class="d-flex align-items-center justify-content-between">
-                <h2 style="margin:0;font-size:1.125rem">Đơn Hàng</h2>
-                <div class="d-flex gap-2 align-items-center">
-                    <input id="searchInput" type="text" placeholder="Tìm kiếm bàn hoặc ID..." class="form-control form-control-sm" style="max-width:260px;">
-                    <button id="refreshBtn" class="btn btn-sm btn-primary">Refresh</button>
-                </div>
-            </div>
-
-            <div class="d-flex gap-2 flex-wrap">
-                <button class="btn btn-sm btn-primary" data-filter="all">Tất Cả</button>
-                <button class="btn btn-sm btn-outline-secondary" data-filter="pending">Đang Chờ</button>
-                <button class="btn btn-sm btn-outline-secondary" data-filter="preparing">Đang Chuẩn Bị</button>
-                <button class="btn btn-sm btn-outline-secondary" data-filter="ready">Sẵn Sàng</button>
-                <button class="btn btn-sm btn-outline-secondary" data-filter="completed">Hoàn Thành</button>
-            </div>
-
-            <div class="orders-grid flex-grow-1 overflow-auto">
-                <div id="ordersRow" class="row g-3" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;">
-                    <!-- cards injected here -->
-                </div>
-            </div>
-        </section>
-
-        <!-- Details panel -->
-        <aside id="detailsPanel" class="details-panel d-none">
-            <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);">
-                <div style="padding:1rem">
-                    <h3 style="margin:0;font-size:1rem">Chi Tiết Đơn Hàng</h3>
-                </div>
-                <div style="padding:1rem">
-                    <button id="closeDetails" class="btn btn-close" aria-label="close" style="filter:invert(1)"></button>
-                </div>
-            </div>
-
-            <div class="overflow-y-auto" style="padding:1rem;">
-                <div style="margin-bottom:1rem">
-                    <div class="muted" style="font-size:.85rem">Thông Tin Đơn Hàng</div>
-                    <div style="background:var(--bg-body);padding:12px;border-radius:8px;border:1px solid var(--border);margin-top:8px">
-                        <div style="display:flex;justify-content:space-between"><span class="muted">ID Đơn Hàng:</span> <span id="orderId" class="fw-medium">#1001</span></div>
-                        <div style="display:flex;justify-content:space-between"><span class="muted">Bàn:</span> <span id="tableNumber" class="fw-medium">T-05</span></div>
-                        <div style="display:flex;justify-content:space-between"><span class="muted">Số Khách:</span> <span id="guestCount" class="fw-medium">4 người</span></div>
-                        <div style="display:flex;justify-content:space-between"><span class="muted">Thời Gian:</span> <span id="orderTime" class="fw-medium">12:30</span></div>
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <div class="row g-2 g-md-3 align-items-center">
+                        <div class="col-md-4">
+                            <input type="number" id="searchOrderId" class="form-control" placeholder="Tìm theo ID đơn">
+                        </div>
+                        <div class="col-md-4">
+                            <input type="number" id="searchTableNumber" class="form-control" placeholder="Tìm theo số bàn">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary w-100" onclick="searchOrders()">
+                                <i class="bi bi-search"></i> Tìm kiếm
+                            </button>
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-secondary w-100" onclick="loadOrders('')">
+                                <i class="bi bi-arrow-clockwise"></i> Làm mới
+                            </button>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <div style="margin-bottom:1rem">
-                    <div class="muted" style="font-size:.85rem">Các Mục Đặt Hàng</div>
-                    <div id="itemsList" class="space-y-2" style="margin-top:8px"></div>
-                </div>
-
-                <div style="margin-bottom:1rem">
-                    <div style="background:var(--bg-body);padding:12px;border-radius:8px;border:1px solid var(--border)">
-                        <div style="display:flex;justify-content:space-between"><span class="muted">Tổng Cộng:</span> <span id="orderTotal" class="fw-bold text-primary">0 ₫</span></div>
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="btn-group flex-wrap" role="group">
+                                <button type="button" class="btn btn-outline-primary" onclick="filterOrders('')">Tất cả</button>
+                                <button type="button" class="btn btn-outline-warning" onclick="filterOrders('PENDING')">Chờ xử lý</button>
+                                <button type="button" class="btn btn-outline-info" onclick="filterOrders('PROCESSING')">Đang xử lý</button>
+                                <button type="button" class="btn btn-outline-success" onclick="filterOrders('COMPLETED')">Hoàn thành</button>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-md-end mt-2 mt-md-0">
+                            <button type="button" class="btn btn-success" onclick="showCreateOrderModal()">
+                                <i class="bi bi-plus-circle"></i> Tạo đơn mới
+                            </button>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <div style="margin-bottom:2rem">
-                    <div class="muted" style="font-size:.85rem">Cập Nhật Trạng Thái</div>
-                    <select id="statusSelect" class="form-select form-select-sm" style="margin-top:8px">
-                        <option value="pending">Đang Chờ</option>
-                        <option value="preparing">Đang Chuẩn Bị</option>
-                        <option value="ready">Sẵn Sàng</option>
-                        <option value="completed">Hoàn Thành</option>
-                    </select>
+            <div id="orders-container">
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
                 </div>
             </div>
-
-            <div style="padding:1rem;border-top:1px solid var(--border)">
-                <button id="updateStatusBtn" class="btn btn-primary w-100 mb-2">Cập Nhật Trạng Thái</button>
-                <button id="deleteOrderBtn" class="btn btn-danger w-100">Xóa Đơn Hàng</button>
-            </div>
-        </aside>
-    </main>
+        </div>
+    </div>
 </div>
 
-<!-- Dependencies: SockJS & Stomp -->
-<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-    /******************************************************************
-     * Single-file client logic:
-     * - tải danh sách từ GET /manager/orders/list
-     * - realtime: subscribe /topic/orders/update via SockJS+STOMP (endpoint /ws)
-     * - cập nhật trạng thái: POST /manager/orders/{orderId}/status?status=<value>
-     * - xóa: gửi DELETE /manager/orders/{id} nếu API có (nếu không có thì xóa local)
-     *
-     * Note:
-     * - Nếu Spring Security bật CSRF, server thường render meta tag _csrf & _csrf_header;
-     *   script sẽ tự lấy và gửi header tương ứng.
-     ******************************************************************/
-
-        // --- State ---
-    let orders = []; // will hold OrderDTO-like objects from server
-    let selectedOrder = null;
-    let currentFilter = 'all';
-    let stompClient = null;
-
-    // --- Helpers ---
-    function money(v){
-        return new Intl.NumberFormat('vi-VN').format(v) + ' ₫';
-    }
-
-    function getCsrfHeaders(){
-        const metaToken = document.querySelector('meta[name="_csrf"]');
-        const metaHeader = document.querySelector('meta[name="_csrf_header"]');
-        if(metaToken && metaHeader){
-            const name = metaHeader.getAttribute('content') || 'X-CSRF-TOKEN';
-            const token = metaToken.getAttribute('content');
-            const headers = {};
-            headers[name] = token;
-            return headers;
-        }
-        // also check common meta names
-        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        if(token){
-            return { 'X-CSRF-TOKEN': token };
-        }
-        return {};
-    }
-
-    function statusBadge(status){
-        switch(status){
-            case 'pending': return '<span class="badge badge-pending">Đang Chờ</span>';
-            case 'preparing': return '<span class="badge badge-preparing">Đang Chuẩn Bị</span>';
-            case 'ready': return '<span class="badge badge-ready">Sẵn Sàng</span>';
-            case 'completed': return '<span class="badge badge-completed">Hoàn Thành</span>';
-            default: return '<span class="badge bg-secondary">'+status+'</span>';
-        }
-    }
-
-    // --- Render functions ---
-    function renderCounts(){
-        const counts = { all: orders.length, pending:0, preparing:0, ready:0, completed:0 };
-        orders.forEach(o=>{
-            if(o.status && counts[o.status] !== undefined) counts[o.status]++;
-        });
-        document.getElementById('count-all').textContent = `(${counts.all})`;
-        document.getElementById('count-pending').textContent = counts.pending;
-        document.getElementById('count-preparing').textContent = counts.preparing;
-        document.getElementById('count-ready').textContent = counts.ready;
-        document.getElementById('count-completed').textContent = counts.completed;
-    }
-
-    function renderOrders(){
-        const container = document.getElementById('ordersRow');
-        container.innerHTML = '';
-        const q = document.getElementById('searchInput').value.trim().toLowerCase();
-        const filtered = orders.filter(o=>{
-            if(currentFilter!=='all' && o.status !== currentFilter) return false;
-            if(!q) return true;
-            return ((''+o.table).toLowerCase().includes(q)) || ((''+o.id).toLowerCase().includes(q));
-        });
-
-        if(filtered.length===0){
-            container.innerHTML = '<div class="p-4 muted">Không có đơn hàng phù hợp</div>';
-            renderCounts();
-            return;
-        }
-
-        filtered.forEach(o=>{
-            const div = document.createElement('div');
-            div.className = 'card-order';
-            if(selectedOrder && selectedOrder.id === o.id) div.classList.add('selected');
-            div.dataset.table = o.table;
-            div.dataset.id = o.id;
-            div.innerHTML = `
-          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
-            <div>
-              <div class="muted" style="font-size:.85rem">Bàn</div>
-              <div style="font-size:1.25rem;font-weight:700">${o.table || ''}</div>
+<div class="modal fade" id="createOrderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tạo đơn mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div>${statusBadge(o.status)}</div>
-          </div>
-          <div style="margin-bottom:8px">
-            <div class="muted small">ID: <span>${o.id}</span></div>
-            <div class="muted small">Thời gian: <span>${o.time || ''}</span></div>
-            <div class="muted small">Khách: <span>${o.guests ?? '-'}</span></div>
-          </div>
-          <div style="border-top:1px solid var(--border);padding-top:8px">
-            <div style="font-weight:700;color:var(--primary)">${money(o.total ?? 0)}</div>
-          </div>
-        `;
-            div.addEventListener('click',()=> selectOrderCard(o.id));
-            container.appendChild(div);
-        });
-        renderCounts();
-    }
+            <div class="modal-body">
+                <select id="tableSelect" class="form-select">
+                    <option value="">-- Chọn bàn --</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="createOrder()">Tạo đơn</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    function renderDetails(order){
-        if(!order) return;
-        document.getElementById('orderId').textContent = '#'+order.id;
-        document.getElementById('tableNumber').textContent = order.table || '-';
-        document.getElementById('guestCount').textContent = (order.guests ? order.guests + ' người' : '-');
-        document.getElementById('orderTime').textContent = order.time || '-';
-        document.getElementById('orderTotal').textContent = money(order.total || 0);
-        document.getElementById('statusSelect').value = order.status || 'pending';
+<div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm món vào đơn <span id="addProductOrderId"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <select id="productSelect" class="form-select mb-3">
+                    <option value="">-- Chọn món --</option>
+                </select>
+                <input type="number" id="productQuantity" class="form-control mb-3" value="1" min="1" placeholder="Số lượng">
+                <textarea id="productNote" class="form-control" placeholder="Ghi chú (tùy chọn)"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="addProductToOrder()">Thêm</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-        // items
-        const container = document.getElementById('itemsList');
-        container.innerHTML = '';
-        const items = order.items && order.items.length ? order.items : [];
-        if(items.length===0){
-            container.innerHTML = '<div class="muted">Không có mục đặt hàng</div>';
-        }else{
-            items.forEach(it=>{
-                const el = document.createElement('div');
-                el.style.background = 'var(--bg-body)';
-                el.style.padding = '8px';
-                el.style.borderRadius = '8px';
-                el.style.display = 'flex';
-                el.style.justifyContent = 'space-between';
-                el.innerHTML = `<div><div style="font-weight:600">${it.name}</div><div class="muted small">x${it.qty}</div></div><div>${money(it.price)}</div>`;
-                container.appendChild(el);
-            });
-        }
-    }
+<div class="modal fade" id="addToppingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Thêm topping</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modalOrderDetailId">
+                <div id="toppingsContainer" class="topping-list">
+                    <div class="text-center text-muted">Đang tải...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="addToppingToOrderDetail()">Thêm</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    // --- Selection & UI actions ---
-    function selectOrderCard(orderId){
-        const order = orders.find(o=>o.id == orderId);
-        if(!order) return;
-        selectedOrder = order;
-        // show panel
-        document.getElementById('detailsPanel').classList.remove('d-none');
-        renderDetails(order);
-        // mark selected card
-        document.querySelectorAll('.card-order').forEach(el=>el.classList.toggle('selected', el.dataset.id==orderId));
-    }
+<th:block th:replace="~{manager/fragments/layout :: managerScripts(~{::extraScripts})}"></th:block>
+<th:block th:fragment="extraScripts">
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        let stompClient = null;
+        let currentStatus = '';
+        let currentOrderId = null;
+        let currentOrderDetailId = null;
 
-    function closeDetails(){
-        selectedOrder = null;
-        document.getElementById('detailsPanel').classList.add('d-none');
-        document.querySelectorAll('.card-order').forEach(el=>el.classList.remove('selected'));
-    }
-
-    // --- Network: fetch list ---
-    async function fetchOrders(){
-        try {
-            const res = await fetch('/manager/orders/list');
-            if(!res.ok) throw new Error('Fetch orders failed: ' + res.status);
-            const data = await res.json();
-            // Expecting an array of OrderDTO. Normalize a bit.
-            orders = data.map(d => ({
-                id: d.id ?? d.orderId ?? d.order_id,
-                table: d.table ?? d.tableNumber ?? d.table_number,
-                guests: d.guests ?? d.guestCount ?? d.guest_count,
-                time: d.time ?? d.orderTime ?? d.timeStamp,
-                status: d.status ?? 'pending',
-                total: d.total ?? d.amount ?? 0,
-                items: Array.isArray(d.items) ? d.items : (d.orderItems ? d.orderItems : [])
-            }));
-            renderOrders();
-        }catch(err){
-            console.error(err);
-            // fallback sample dataset so UI can be tested offline
-            if(orders.length===0){
-                orders = [
-                    { id:1001, table:'T-05', guests:4, time:'12:30', status:'pending', total:450000, items:[{name:'Phở Bò',qty:2,price:180000},{name:'Cơm Gà',qty:1,price:120000}]},
-                    { id:1002, table:'T-08', guests:2, time:'12:25', status:'preparing', total:280000, items:[]},
-                    { id:1003, table:'T-12', guests:6, time:'12:15', status:'ready', total:680000, items:[]},
-                    { id:1004, table:'T-03', guests:3, time:'12:35', status:'pending', total:320000, items:[]},
-                    { id:1005, table:'T-15', guests:5, time:'12:28', status:'preparing', total:520000, items:[]},
-                    { id:1006, table:'T-07', guests:2, time:'12:00', status:'completed', total:250000, items:[]}
-                ];
-            }
-            renderOrders();
-        }
-    }
-
-    // --- Update status (server) ---
-    async function updateStatus(){
-        if(!selectedOrder) return alert('Vui lòng chọn đơn hàng');
-        const newStatus = document.getElementById('statusSelect').value;
-        const csrfHeaders = getCsrfHeaders();
-        try {
-            const url = `/manager/orders/${selectedOrder.id}/status`;
-            const form = new URLSearchParams();
-            form.set('status', newStatus);
-            const res = await fetch(url, {
-                method:'POST',
-                headers: Object.assign({'Content-Type':'application/x-www-form-urlencoded'}, csrfHeaders),
-                body: form.toString()
-            });
-            if(!res.ok){
-                const text = await res.text();
-                console.error('status update failed', res.status, text);
-                throw new Error('Cập nhật thất bại');
-            }
-            const text = await res.text();
-            if(text.includes('success')){
-                // optimistic update; actual update will come through websocket too
-                selectedOrder.status = newStatus;
-                const idx = orders.findIndex(o=>o.id===selectedOrder.id);
-                if(idx>-1) orders[idx].status = newStatus;
-                renderOrders();
-                renderDetails(selectedOrder);
-                showToast('Cập nhật trạng thái thành công');
-            } else {
-                showToast('Server trả về lỗi: ' + text, true);
-            }
-        }catch(err){
-            console.error(err);
-            showToast('Cập nhật thất bại. Kiểm tra console.', true);
-        }
-    }
-
-    // --- Delete order (attempt DELETE, fallback client-side) ---
-    async function deleteOrder(){
-        if(!selectedOrder) return;
-        if(!confirm('Bạn có chắc chắn muốn xóa đơn hàng này?')) return;
-        const csrfHeaders = getCsrfHeaders();
-        try {
-            const url = `/manager/orders/${selectedOrder.id}`;
-            const res = await fetch(url, { method:'DELETE', headers: csrfHeaders });
-            if(res.ok){
-                orders = orders.filter(o=>o.id !== selectedOrder.id);
-                closeDetails();
-                renderOrders();
-                showToast('Xóa đơn hàng thành công');
-                return;
-            }
-            // if DELETE not implemented, fallback to local removal
-            console.warn('DELETE returned', res.status);
-        }catch(err){
-            console.warn('DELETE failed, fallback to local removal', err);
-        }
-        // fallback local
-        orders = orders.filter(o=>o.id !== selectedOrder.id);
-        closeDetails();
-        renderOrders();
-        showToast('Đã xóa cục bộ (server có thể không hỗ trợ DELETE)');
-    }
-
-    // --- Realtime: connect SockJS+STOMP ---
-    function connectRealtime(){
-        try {
+        function connect() {
             const socket = new SockJS('/ws');
             stompClient = Stomp.over(socket);
-            // Optionally disable debug logs:
-            stompClient.debug = null;
-
-            stompClient.connect({}, function(frame){
-                console.log('Connected to STOMP:', frame);
-                stompClient.subscribe('/topic/orders/update', function(message){
-                    try {
-                        const dto = JSON.parse(message.body);
-                        // convert dto to local order shape
-                        const update = {
-                            id: dto.id ?? dto.orderId ?? dto.order_id,
-                            table: dto.table ?? dto.tableNumber ?? dto.table_number,
-                            guests: dto.guests ?? dto.guestCount ?? dto.guest_count,
-                            time: dto.time ?? dto.orderTime ?? dto.timeStamp,
-                            status: dto.status ?? 'pending',
-                            total: dto.total ?? dto.amount ?? 0,
-                            items: Array.isArray(dto.items) ? dto.items : (dto.orderItems ? dto.orderItems : [])
-                        };
-                        // upsert
-                        const idx = orders.findIndex(o=>o.id == update.id);
-                        if(idx>-1){
-                            orders[idx] = Object.assign({}, orders[idx], update);
-                        }else{
-                            orders.unshift(update); // new order: add to top
-                        }
-                        renderOrders();
-                        // if currently viewing details of same order, refresh detail view
-                        if(selectedOrder && selectedOrder.id == update.id){
-                            selectedOrder = orders.find(o=>o.id == update.id);
-                            renderDetails(selectedOrder);
-                        }
-                        // small toast
-                        showToast('Đơn hàng #' + update.id + ' đã được cập nhật (realtime)');
-                    }catch(e){
-                        console.error('Failed to handle stomp message', e);
-                    }
+            stompClient.connect({}, () => {
+                stompClient.subscribe('/topic/orders/update', (msg) => {
+                    console.log('Order updated:', msg.body);
+                    loadOrders(currentStatus);
                 });
-            }, function(err){
-                console.error('STOMP connect error', err);
-                // try reconnect after delay
-                setTimeout(connectRealtime, 5000);
-            });
-        }catch(e){
-            console.error('Realtime init failed', e);
+            }, () => setTimeout(connect, 3000));
         }
-    }
 
-    // --- UI helpers ---
-    function showToast(message, isError=false){
-        // basic temporary toast using alert-like visual
-        const el = document.createElement('div');
-        el.textContent = message;
-        el.style.position = 'fixed';
-        el.style.right = '16px';
-        el.style.bottom = '16px';
-        el.style.padding = '12px 16px';
-        el.style.borderRadius = '8px';
-        el.style.background = isError ? '#dc2626' : 'rgba(20,20,20,0.9)';
-        el.style.color = '#fff';
-        el.style.boxShadow = '0 6px 20px rgba(0,0,0,0.5)';
-        document.body.appendChild(el);
-        setTimeout(()=> el.style.opacity = '0.0', 2200);
-        setTimeout(()=> el.remove(), 2600);
-    }
+        function loadOrders(status = '') {
+            currentStatus = status;
+            const url = status ? `/manager/orders/list?status=${status}` : '/manager/orders/list';
+            fetch(url)
+                .then(response => response.json())
+                .then(orders => {
+                    const container = document.getElementById('orders-container');
+                    if (orders.length === 0) {
+                        container.innerHTML = '<div class="alert alert-info">Không có đơn hàng nào.</div>';
+                        return;
+                    }
+                    container.innerHTML = orders.map(order => renderOrder(order)).join('');
+                })
+                .catch(error => {
+                    console.error('Error loading orders:', error);
+                    document.getElementById('orders-container').innerHTML =
+                        '<div class="alert alert-danger">Lỗi khi tải danh sách đơn hàng.</div>';
+                });
+        }
 
-    // --- Event wiring ---
-    document.getElementById('closeDetails').addEventListener('click', closeDetails);
-    document.getElementById('updateStatusBtn').addEventListener('click', updateStatus);
-    document.getElementById('deleteOrderBtn').addEventListener('click', deleteOrder);
-    document.getElementById('refreshBtn').addEventListener('click', fetchOrders);
+        function renderOrder(order) {
+            const statusColor = getStatusColor(order.status);
+            const statusBadge = `<span class="badge bg-${statusColor}">${order.status}</span>`;
+            const items = order.items ? order.items.map(item => renderOrderItem(item, order.orderId)).join('') : '';
 
-    // search input
-    document.getElementById('searchInput').addEventListener('input', ()=> renderOrders());
+            let paymentInfoHtml = '';
+            if (order.paymentInfo) {
+                const payment = order.paymentInfo;
+                const paymentStatusColor = payment.status === 'COMPLETED' ? 'success' :
+                    payment.status === 'PENDING' ? 'warning' :
+                        payment.status === 'FAILED' ? 'danger' : 'secondary';
+                const paymentStatusText = payment.status === 'COMPLETED' ? 'Đã thanh toán' :
+                    payment.status === 'PENDING' ? 'Chờ xử lý' :
+                        payment.status === 'FAILED' ? 'Thất bại' : payment.status;
+                paymentInfoHtml = `
+                    <div class="payment-info ${payment.status.toLowerCase()} mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong><i class="bi bi-credit-card-2-front"></i> Phương thức thanh toán:</strong>
+                                ${payment.paymentMethod === 'COD' ?
+                                    '<span class="badge bg-info ms-2"><i class="bi bi-cash-coin"></i> COD (Thanh toán khi nhận hàng)</span>' :
+                                    '<span class="badge bg-warning ms-2"><i class="bi bi-credit-card"></i> VNPAY</span>'}
+                                <span class="badge bg-${paymentStatusColor} ms-2">${paymentStatusText}</span>
+                                <span class="ms-2 fw-bold text-success">${formatCurrency(payment.amount)}</span>
+                            </div>
+                            ${payment.status === 'PENDING' && payment.paymentMethod === 'COD' ? `
+                                <button class="btn btn-sm btn-success" onclick="confirmCODPayment(${order.orderId}, ${payment.paymentId})">
+                                    <i class="bi bi-check-circle"></i> Duyệt COD
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }
 
-    // filter buttons (top)
-    document.querySelectorAll('[data-filter]').forEach(b=>{
-        b.addEventListener('click', (e)=>{
-            document.querySelectorAll('[data-filter]').forEach(x=>x.classList.remove('btn-primary'));
-            document.querySelectorAll('[data-filter]').forEach(x=>x.classList.add('btn-outline-secondary'));
-            b.classList.remove('btn-outline-secondary');
-            b.classList.add('btn-primary');
-            currentFilter = b.dataset.filter;
-            renderOrders();
+            return `
+                <div class="card order-card ${order.status.toLowerCase()} shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="mb-2">Đơn #${order.orderId}</h5>
+                                <p class="mb-1"><strong><i class="bi bi-table"></i> Bàn:</strong> ${order.tableName || 'N/A'}</p>
+                                <p class="mb-1"><strong><i class="bi bi-clock"></i> Thời gian:</strong> ${order.time || 'N/A'}</p>
+                                <p class="mb-0"><strong><i class="bi bi-cash-coin"></i> Tổng:</strong>
+                                    <span class="text-success fw-bold">${formatCurrency(order.totalAmount)}</span>
+                                </p>
+                            </div>
+                            <div>
+                                ${statusBadge}
+                            </div>
+                        </div>
+
+                        ${paymentInfoHtml}
+
+                        <div class="mb-3">
+                            <h6 class="collapse-btn" data-bs-toggle="collapse" data-bs-target="#orderDetails_${order.orderId}">
+                                <i class="bi bi-chevron-down"></i> Chi tiết đơn (${order.items ? order.items.length : 0} món)
+                            </h6>
+                            <div class="collapse show order-details" id="orderDetails_${order.orderId}">
+                                ${items || '<p class="text-muted">Chưa có món nào</p>'}
+                            </div>
+                        </div>
+
+                        <div class="btn-group flex-wrap" role="group">
+                            <button class="btn btn-sm btn-primary" onclick="showAddProductModal(${order.orderId})">
+                                <i class="bi bi-plus"></i> Thêm món
+                            </button>
+                            ${(order.status === 'PENDING' || order.status === 'PROCESSING') ? `
+                                <button class="btn btn-sm btn-info" onclick="updateStatus(${order.orderId}, 'PROCESSING')" ${order.status === 'PROCESSING' ? 'disabled' : ''}>
+                                    <i class="bi bi-play"></i> Bắt đầu
+                                </button>
+                                <button class="btn btn-sm btn-success" onclick="updateStatus(${order.orderId}, 'COMPLETED')" ${order.status === 'COMPLETED' ? 'disabled' : ''}>
+                                    <i class="bi bi-check"></i> Hoàn thành
+                                </button>
+                                <button class="btn btn-sm btn-warning" onclick="initiatePayment(${order.orderId})" title="Thanh toán VNPAY">
+                                    <i class="bi bi-credit-card"></i> VNPAY
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="cancelOrder(${order.orderId})">
+                                    <i class="bi bi-x"></i> Hủy
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderOrderItem(item, orderId) {
+            const toppings = item.toppings ? item.toppings.map(t =>
+                `<div class="topping-item">
+                    + ${t.name} (${formatCurrency(t.price)})
+                    <button class="btn btn-sm btn-link text-danger p-0 ms-2" onclick="deleteTopping(${orderId}, ${t.toppingId})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>`
+            ).join('') : '';
+
+            return `
+                <div class="order-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong>${item.productName}</strong> x${item.quantity}
+                            ${item.note ? `<br><small class="text-muted">Ghi chú: ${item.note}</small>` : ''}
+                            ${toppings}
+                        </div>
+                        <div class="text-end">
+                            <div>${formatCurrency(item.subtotal)}</div>
+                            <button class="btn btn-sm btn-danger mt-1" onclick="deleteProduct(${orderId}, ${item.orderDetailId})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            <button class="btn btn-sm btn-success mt-1" onclick="showAddToppingModal(${item.orderDetailId}, ${item.productId})" ${!item.productId ? 'disabled' : ''}>
+                                <i class="bi bi-plus"></i> Topping
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function filterOrders(status) {
+            loadOrders(status);
+        }
+
+        function searchOrders() {
+            const orderId = document.getElementById('searchOrderId').value;
+            const tableNumber = document.getElementById('searchTableNumber').value;
+            let url = '/manager/orders/search?';
+            if (orderId) url += `orderId=${orderId}&`;
+            if (tableNumber) url += `tableNumber=${tableNumber}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(orders => {
+                    const container = document.getElementById('orders-container');
+                    if (orders.length === 0) {
+                        container.innerHTML = '<div class="alert alert-info">Không tìm thấy đơn hàng nào.</div>';
+                        return;
+                    }
+                    container.innerHTML = orders.map(order => renderOrder(order)).join('');
+                })
+                .catch(error => {
+                    console.error('Error searching orders:', error);
+                    document.getElementById('orders-container').innerHTML =
+                        '<div class="alert alert-danger">Lỗi khi tìm kiếm đơn hàng.</div>';
+                });
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('vi-VN').format(amount) + ' ₫';
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                'PENDING': 'warning',
+                'PROCESSING': 'info',
+                'COMPLETED': 'success',
+                'CANCELLED': 'danger'
+            };
+            return colors[status] || 'secondary';
+        }
+
+        function showCreateOrderModal() {
+            fetch('/manager/orders/tables')
+                .then(response => response.json())
+                .then(tables => {
+                    const select = document.getElementById('tableSelect');
+                    select.innerHTML = '<option value="">-- Chọn bàn --</option>' +
+                        tables.map(t => `<option value="${t.tableId}">${t.tableName}</option>`).join('');
+                    new bootstrap.Modal(document.getElementById('createOrderModal')).show();
+                });
+        }
+
+        function createOrder() {
+            const tableId = document.getElementById('tableSelect').value;
+            if (!tableId) {
+                alert('Vui lòng chọn bàn!');
+                return;
+            }
+            fetch('/manager/orders/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `tableId=${tableId}`
+            })
+                .then(response => response.json())
+                .then(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('createOrderModal')).hide();
+                    loadOrders(currentStatus);
+                })
+                .catch(error => {
+                    console.error('Error creating order:', error);
+                    alert('Lỗi khi tạo đơn hàng!');
+                });
+        }
+
+        function showAddProductModal(orderId) {
+            currentOrderId = orderId;
+            document.getElementById('addProductOrderId').textContent = '#' + orderId;
+            fetch('/manager/orders/products')
+                .then(response => response.json())
+                .then(products => {
+                    const select = document.getElementById('productSelect');
+                    select.innerHTML = '<option value="">-- Chọn món --</option>' +
+                        products.map(p => `<option value="${p.productId}">${p.name} - ${formatCurrency(p.price)}</option>`).join('');
+                    new bootstrap.Modal(document.getElementById('addProductModal')).show();
+                });
+        }
+
+        function addProductToOrder() {
+            const productId = document.getElementById('productSelect').value;
+            const quantity = document.getElementById('productQuantity').value;
+            const note = document.getElementById('productNote').value;
+
+            if (!productId || !quantity) {
+                alert('Vui lòng chọn món và nhập số lượng!');
+                return;
+            }
+
+            let body = `productId=${productId}&quantity=${quantity}`;
+            if (note) body += `&note=${encodeURIComponent(note)}`;
+
+            fetch(`/manager/orders/${currentOrderId}/add-product`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body
+            })
+                .then(response => response.json())
+                .then(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
+                    loadOrders(currentStatus);
+                })
+                .catch(error => {
+                    console.error('Error adding product:', error);
+                    alert('Lỗi khi thêm món!');
+                });
+        }
+
+        function showAddToppingModal(orderDetailId, productId) {
+            currentOrderDetailId = orderDetailId;
+            document.getElementById('modalOrderDetailId').value = orderDetailId;
+
+            const toppingsContainer = document.getElementById('toppingsContainer');
+            toppingsContainer.innerHTML = '<div class="text-center text-muted">Đang tải...</div>';
+
+            fetch(`/orders/products/${productId}/toppings`)
+                .then(response => response.json())
+                .then(toppings => {
+                    if (toppings.length === 0) {
+                        toppingsContainer.innerHTML = '<div class="text-muted small">Không có topping nào</div>';
+                    } else {
+                        toppingsContainer.innerHTML = toppings.map(t => `
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="${t.toppingId}" id="topping_${t.toppingId}">
+                                <label class="form-check-label" for="topping_${t.toppingId}">
+                                    ${t.name} (+${formatCurrency(t.price)})
+                                </label>
+                            </div>
+                        `).join('');
+                    }
+                    new bootstrap.Modal(document.getElementById('addToppingModal')).show();
+                })
+                .catch(error => {
+                    console.error('Error loading toppings:', error);
+                    toppingsContainer.innerHTML = '<div class="text-danger small">Lỗi khi tải toppings</div>';
+                });
+        }
+
+        function addToppingToOrderDetail() {
+            const selectedToppings = Array.from(document.querySelectorAll('#toppingsContainer input[type="checkbox"]:checked'))
+                .map(cb => parseInt(cb.value));
+
+            if (selectedToppings.length === 0) {
+                alert('Vui lòng chọn ít nhất một topping!');
+                return;
+            }
+
+            const addToppingPromises = selectedToppings.map(toppingId => {
+                return fetch(`/manager/orders/${currentOrderDetailId}/add-topping?toppingId=${toppingId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                }).then(response => response.json());
+            });
+
+            Promise.all(addToppingPromises)
+                .then(() => {
+                    bootstrap.Modal.getInstance(document.getElementById('addToppingModal')).hide();
+                    loadOrders(currentStatus);
+                })
+                .catch(error => {
+                    console.error('Error adding toppings:', error);
+                    alert('Lỗi khi thêm topping!');
+                });
+        }
+
+        function updateStatus(orderId, status) {
+            fetch(`/manager/orders/${orderId}/status?status=${status}`, {
+                method: 'POST'
+            })
+                .then(response => response.text())
+                .then(result => {
+                    if (result === 'success') {
+                        loadOrders(currentStatus);
+                    } else {
+                        alert('Lỗi: ' + result);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating status:', error);
+                    alert('Lỗi khi cập nhật trạng thái!');
+                });
+        }
+
+        function cancelOrder(orderId) {
+            if (!confirm('Bạn có chắc chắn muốn hủy đơn này?')) return;
+
+            fetch(`/manager/orders/${orderId}/cancel`, {
+                method: 'POST'
+            })
+                .then(response => response.text())
+                .then(result => {
+                    if (result === 'success') {
+                        loadOrders(currentStatus);
+                    } else {
+                        alert('Lỗi: ' + result);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cancelling order:', error);
+                    alert('Lỗi khi hủy đơn!');
+                });
+        }
+
+        function deleteProduct(orderId, orderDetailId) {
+            if (!confirm('Bạn có chắc chắn muốn xóa món này?')) return;
+
+            fetch(`/manager/orders/${orderId}/delete-product?orderDetailId=${orderDetailId}`, {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(() => {
+                    loadOrders(currentStatus);
+                })
+                .catch(error => {
+                    console.error('Error deleting product:', error);
+                    alert('Lỗi khi xóa món!');
+                });
+        }
+
+        function deleteTopping(orderId, toppingId) {
+            if (!confirm('Bạn có chắc chắn muốn xóa topping này?')) return;
+
+            fetch(`/manager/orders/${orderId}/delete-topping?toppingId=${toppingId}`, {
+                method: 'POST'
+            })
+                .then(response => response.json())
+                .then(() => {
+                    loadOrders(currentStatus);
+                })
+                .catch(error => {
+                    console.error('Error deleting topping:', error);
+                    alert('Lỗi khi xóa topping!');
+                });
+        }
+
+        function confirmCODPayment(orderId, paymentId) {
+            if (!confirm('Xác nhận thanh toán COD cho đơn hàng này?')) {
+                return;
+            }
+
+            const formData = new URLSearchParams();
+            formData.append('paymentId', paymentId);
+
+            fetch(`/manager/orders/${orderId}/confirm-cod-payment`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message || 'Đã xác nhận thanh toán COD thành công!');
+                        loadOrders(currentStatus);
+                    } else {
+                        alert('Lỗi: ' + (data.message || 'Không thể xác nhận thanh toán COD'));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error confirming COD payment:', error);
+                    alert('Lỗi khi xác nhận thanh toán COD!');
+                });
+        }
+
+        function initiatePayment(orderId) {
+            if (!confirm('Bạn có chắc chắn muốn thanh toán đơn hàng này qua VNPAY?')) {
+                return;
+            }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/payment/create';
+
+            const orderIdInput = document.createElement('input');
+            orderIdInput.type = 'hidden';
+            orderIdInput.name = 'orderId';
+            orderIdInput.value = orderId;
+
+            form.appendChild(orderIdInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            connect();
+            loadOrders();
         });
-    });
-
-    // sidebar filters
-    ['all','pending','preparing','ready','completed'].forEach(f=>{
-        const el = document.getElementById('filter-'+f);
-        if(el) el.addEventListener('click', (ev)=>{
-            ev.preventDefault();
-            currentFilter = f==='all' ? 'all' : f;
-            document.querySelectorAll('.nav-link').forEach(x=>x.classList.remove('active'));
-            el.classList.add('active');
-            renderOrders();
-        });
-    });
-
-    // init
-    (function init(){
-        fetchOrders();
-        connectRealtime();
-    })();
-</script>
-    </body>
+        /*]]>*/
+    </script>
+</th:block>
+</body>
 </html>

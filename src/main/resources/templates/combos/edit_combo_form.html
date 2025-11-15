@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chỉnh sửa Combo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { padding: 20px; background-color: #f8f9fa; }
+        .card { margin-bottom: 20px; }
+        .product-item { 
+            padding: 10px; 
+            border: 1px solid #ddd; 
+            margin-bottom: 10px; 
+            border-radius: 5px; 
+            background-color: #fff;
+        }
+        .product-item:hover { background-color: #f8f9fa; }
+        #productsList { max-height: 400px; overflow-y: auto; }
+        .selected-product { background-color: #e7f3ff; border-color: #007bff; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2 class="mb-4"><i class="bi bi-pencil"></i> Chỉnh sửa Combo</h2>
+
+    <!-- Error Message -->
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form th:action="@{/manager/combos/edit/{id}(id=${comboDTO.comboId})}" th:object="${comboDTO}" method="post">
+                
+                <input type="hidden" th:field="*{comboId}">
+                
+                <!-- Combo Basic Info -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="name" class="form-label fw-bold">Tên Combo <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" th:field="*{name}" 
+                               placeholder="Nhập tên combo" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="discountPercent" class="form-label fw-bold">Giảm giá (%) <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="discountPercent" 
+                               th:field="*{discountPercent}" 
+                               placeholder="0-100" min="0" max="100" step="0.01" required>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="startDate" class="form-label fw-bold">Ngày bắt đầu</label>
+                        <input type="datetime-local" class="form-control" id="startDate" th:field="*{startDate}">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="endDate" class="form-label fw-bold">Ngày kết thúc</label>
+                        <input type="datetime-local" class="form-control" id="endDate" th:field="*{endDate}">
+                    </div>
+                </div>
+
+                <!-- Product Selection Section -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Chọn sản phẩm cho combo</label>
+                    
+                    <!-- Current Products Display -->
+                    <div th:if="${comboDTO.comboDetails != null && !comboDTO.comboDetails.isEmpty()}" 
+                         class="alert alert-info mb-2">
+                        <strong>Sản phẩm hiện tại:</strong>
+                        <ul class="mb-0">
+                            <li th:each="detail : ${comboDTO.comboDetails}">
+                                <span th:text="${detail.productName}"></span> 
+                                (Số lượng: <span th:text="${detail.quantity}"></span>)
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div id="productsList" class="border rounded p-3">
+                        <div th:if="${products == null || products.isEmpty()}" class="alert alert-warning">
+                            Không có sản phẩm nào khả dụng
+                        </div>
+                        
+                        <div th:if="${products != null && !products.isEmpty()}">
+                            <div th:each="product, iterStat : ${products}" class="product-item">
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input product-checkbox" 
+                                                   type="checkbox" 
+                                                   th:id="'product_' + ${product.productId}"
+                                                   th:value="${product.productId}"
+                                                   onchange="toggleQuantityInput(this)">
+                                            <label class="form-check-label" th:for="'product_' + ${product.productId}">
+                                                <strong th:text="${product.name}"></strong>
+                                                <br>
+                                                <small class="text-muted" th:text="'Giá: ' + ${product.price} + ' VND'"></small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="input-group" th:id="'quantity_group_' + ${product.productId}" style="display: none;">
+                                            <span class="input-group-text">Số lượng</span>
+                                            <input type="number" 
+                                                   class="form-control quantity-input" 
+                                                   th:name="'comboDetails[' + ${iterStat.index} + '].productId'"
+                                                   th:value="${product.productId}"
+                                                   style="display: none;">
+                                            <input type="number" 
+                                                   class="form-control quantity-input" 
+                                                   th:name="'comboDetails[' + ${iterStat.index} + '].quantity'"
+                                                   min="1" value="1" 
+                                                   th:id="'quantity_' + ${product.productId}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <a th:href="@{/manager/combos/manage}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Hủy
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Cập nhật Combo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // Get existing combo details
+    var existingDetails = /*[[${comboDTO.comboDetails}]]*/ [];
+    
+    // Pre-select existing products
+    window.addEventListener('DOMContentLoaded', function() {
+        if (existingDetails && existingDetails.length > 0) {
+            existingDetails.forEach(function(detail) {
+                var checkbox = document.getElementById('product_' + detail.productId);
+                var quantityInput = document.getElementById('quantity_' + detail.productId);
+                
+                if (checkbox) {
+                    checkbox.checked = true;
+                    toggleQuantityInput(checkbox);
+                    
+                    if (quantityInput) {
+                        quantityInput.value = detail.quantity;
+                    }
+                }
+            });
+        }
+    });
+    /*]]>*/
+    
+    function toggleQuantityInput(checkbox) {
+        const productId = checkbox.value;
+        const quantityGroup = document.getElementById('quantity_group_' + productId);
+        const quantityInput = document.getElementById('quantity_' + productId);
+        const productItem = checkbox.closest('.product-item');
+        
+        if (checkbox.checked) {
+            quantityGroup.style.display = 'flex';
+            quantityInput.required = true;
+            productItem.classList.add('selected-product');
+        } else {
+            quantityGroup.style.display = 'none';
+            quantityInput.required = false;
+            quantityInput.value = 1;
+            productItem.classList.remove('selected-product');
+        }
+    }
+    
+    // Form validation before submit
+    document.querySelector('form').addEventListener('submit', function(e) {
+        // Remove unchecked product inputs before submit
+        document.querySelectorAll('.product-checkbox:not(:checked)').forEach(function(checkbox) {
+            const productId = checkbox.value;
+            const inputs = document.querySelectorAll(`input[id*="${productId}"]`);
+            inputs.forEach(input => {
+                if (input.type === 'number' && input.name.includes('comboDetails')) {
+                    input.disabled = true;
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

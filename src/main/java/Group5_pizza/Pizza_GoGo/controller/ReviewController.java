@@ -1,174 +1,194 @@
 package Group5_pizza.Pizza_GoGo.controller;
 
-import Group5_pizza.Pizza_GoGo.DTO.ReviewDTO;
-import Group5_pizza.Pizza_GoGo.model.Order;
-import Group5_pizza.Pizza_GoGo.model.Review;
-import Group5_pizza.Pizza_GoGo.repository.ReviewRepository;
-import Group5_pizza.Pizza_GoGo.service.OrderService;
+import Group5_pizza.Pizza_GoGo.DTO.OrderReviewForm;
+import Group5_pizza.Pizza_GoGo.DTO.ReviewView;
+import Group5_pizza.Pizza_GoGo.model.Account;
+import Group5_pizza.Pizza_GoGo.model.enums.ReviewStatus;
 import Group5_pizza.Pizza_GoGo.service.ReviewService;
-// Bỏ validation imports
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-// Bỏ validation imports
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
-// Bỏ validation imports
 
-/**
- * Controller xử lý Review, sử dụng Account thay Customer.
- */
 @Controller
 @RequestMapping("/reviews")
 @RequiredArgsConstructor
 public class ReviewController {
 
     private final ReviewService reviewService;
-    private final OrderService orderService;
-    private final ReviewRepository reviewRepository;
 
-    // == Dành cho USER ==
-
-    @GetMapping("/add/{orderId}")
-    public String showReviewForm(@PathVariable Integer orderId, Model model) {
+    @GetMapping("/order/{orderId}/new")
+    public String showOrderReviewForm(@PathVariable Integer orderId,
+                                      HttpSession session,
+                                      Model model,
+                                      RedirectAttributes redirectAttributes) {
+        Account loggedInUser = (Account) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng đăng nhập để đánh giá sản phẩm.");
+            return "redirect:/login";
+        }
         try {
-            // Kiểm tra xem Order có tồn tại không (tùy chọn nhưng nên có)
-            Order order = orderService.getOrderById(orderId);
-            // TODO: Thêm kiểm tra quyền sở hữu order
-
-            // ⭐ SỬA Ở ĐÂY: Tạo DTO và gán orderId vào DTO ⭐
-            ReviewDTO reviewDTO = new ReviewDTO();
-            reviewDTO.setOrderId(orderId); // Gán ID vào đối tượng DTO
-
-            model.addAttribute("orderId", orderId); // Vẫn giữ lại nếu cần hiển thị ở đâu đó
-            model.addAttribute("reviewDTO", reviewDTO); // Truyền DTO đã có orderId ra view
-
-            return "reviews/add_review_form"; // Tên file HTML
-        } catch (RuntimeException e) {
-            model.addAttribute("errorMessage", "Không tìm thấy đơn hàng.");
-            return "error_page"; // Hoặc trang lỗi chung
+            OrderReviewForm form = reviewService.buildOrderReviewForm(orderId, loggedInUser);
+            
+            // Debug logging
+            System.out.println("=== BUILD REVIEW FORM DEBUG ===");
+            System.out.println("OrderId: " + orderId);
+            System.out.println("Form items count: " + (form.getItems() != null ? form.getItems().size() : 0));
+            if (form.getItems() != null) {
+                for (int i = 0; i < form.getItems().size(); i++) {
+                    OrderReviewForm.OrderReviewItem item = form.getItems().get(i);
+                    System.out.println("Item " + i + ": orderDetailId=" + item.getOrderDetailId() 
+                        + ", productId=" + item.getProductId() 
+                        + ", productName=" + item.getProductName());
+                }
+            }
+            
+            model.addAttribute("reviewForm", form);
+            model.addAttribute("orderId", orderId);
+            return "reviews/add_review_form";
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            return "redirect:/orders/my-orders";
         }
     }
-    @PostMapping("/add")
-    public String submitReview(@ModelAttribute("reviewDTO") ReviewDTO reviewDTO,
-                               RedirectAttributes redirectAttributes,
-                               Model model) {
 
-        // --- Sử dụng UserId cố định để test ---
-        Integer currentUserId = 1; // ID user tồn tại trong DB
-        reviewDTO.setUserId(currentUserId);
-        // --- ---
-
-        // (Tùy chọn) Kiểm tra thủ công
-        if (reviewDTO.getRating() == null || reviewDTO.getRating() < 1 || reviewDTO.getRating() > 5) {
-            model.addAttribute("orderId", reviewDTO.getOrderId());
-            model.addAttribute("errorMessage", "Vui lòng chọn số sao đánh giá (từ 1 đến 5).");
-            model.addAttribute("reviewDTO", reviewDTO);
-            return "reviews/add_review_form";
+    @PostMapping("/order/{orderId}")
+    public String submitOrderReviews(@PathVariable Integer orderId,
+                                     @ModelAttribute("reviewForm") OrderReviewForm reviewForm,
+                                     jakarta.servlet.http.HttpServletRequest request,
+                                     HttpSession session,
+                                     RedirectAttributes redirectAttributes) {
+        Account loggedInUser = (Account) session.getAttribute("loggedInUser");
+        if (loggedInUser == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Vui lòng đăng nhập để gửi đánh giá.");
+            return "redirect:/login";
         }
-        if (reviewDTO.getComment() != null && reviewDTO.getComment().length() > 1000) {
-            model.addAttribute("orderId", reviewDTO.getOrderId());
-            model.addAttribute("errorMessage", "Bình luận không được vượt quá 1000 ký tự.");
-            model.addAttribute("reviewDTO", reviewDTO);
-            return "reviews/add_review_form";
+        reviewForm.setOrderId(orderId);
+        
+        // Debug logging - kiểm tra request parameters
+        System.out.println("=== SUBMIT REVIEW DEBUG ===");
+        System.out.println("OrderId: " + reviewForm.getOrderId());
+        System.out.println("Items count: " + (reviewForm.getItems() != null ? reviewForm.getItems().size() : 0));
+        
+        // Debug: In tất cả request parameters
+        System.out.println("Request parameters:");
+        request.getParameterMap().forEach((key, values) -> {
+            System.out.println("  " + key + " = " + java.util.Arrays.toString(values));
+        });
+        
+        if (reviewForm.getItems() != null) {
+            for (int i = 0; i < reviewForm.getItems().size(); i++) {
+                OrderReviewForm.OrderReviewItem item = reviewForm.getItems().get(i);
+                System.out.println("Item " + i + ": orderDetailId=" + item.getOrderDetailId() 
+                    + ", rating=" + item.getRating() 
+                    + ", comment=" + item.getComment());
+            }
+        } else {
+            System.out.println("WARNING: reviewForm.getItems() is NULL!");
         }
-        if (reviewDTO.getOrderId() == null) {
-            model.addAttribute("errorMessage", "Lỗi: Không xác định được đơn hàng cần đánh giá.");
-            model.addAttribute("reviewDTO", reviewDTO);
-            return "reviews/add_review_form";
-        }
-
+        
         try {
-            reviewService.addReview(reviewDTO);
-            redirectAttributes.addFlashAttribute("successMessage", "Gửi đánh giá thành công!");
-
-            // ⭐ THAY ĐỔI URL CHUYỂN HƯỚNG TẠI ĐÂY ⭐
-            // return "redirect:/orders/history"; // URL cũ
-            return "redirect:/"; // Ví dụ: Chuyển về trang chủ
-            // Hoặc: return "redirect:/orders/details/" + reviewDTO.getOrderId(); // Nếu có trang chi tiết đơn hàng
-
-        } catch (RuntimeException e) {
-            System.err.println("Lỗi khi thêm review: " + e.getMessage());
-            e.printStackTrace();
-            model.addAttribute("orderId", reviewDTO.getOrderId());
-            model.addAttribute("errorMessage", "Lỗi khi lưu đánh giá: " + e.getMessage());
-            model.addAttribute("reviewDTO", reviewDTO);
-            return "reviews/add_review_form";
-        } catch (Exception e) {
-            System.err.println("Lỗi không mong muốn khi thêm review: " + e.getMessage());
-            e.printStackTrace();
-            model.addAttribute("orderId", reviewDTO.getOrderId());
-            model.addAttribute("errorMessage", "Lỗi hệ thống không mong muốn.");
-            model.addAttribute("reviewDTO", reviewDTO);
-            return "reviews/add_review_form";
+            reviewService.submitOrderReviews(reviewForm, loggedInUser);
+            redirectAttributes.addFlashAttribute("successMessage", "Cảm ơn bạn đã đánh giá sản phẩm!");
+            return "redirect:/orders/" + orderId;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
+            return "redirect:/reviews/order/" + orderId + "/new";
         }
     }
 
     @GetMapping("/order/{orderId}")
-    public String viewOrderReviews(@PathVariable Integer orderId, Model model) {
-        try {
-            Order order = orderService.getOrderById(orderId);
-            model.addAttribute("order", order);
-        } catch (RuntimeException e){ /* Bỏ qua */ }
-        List<Review> reviews = reviewService.getReviewsByOrderId(orderId);
+    public String viewOrderReviews(@PathVariable Integer orderId,
+                                   HttpSession session,
+                                   Model model) {
+        Account loggedInUser = (Account) session.getAttribute("loggedInUser");
+        List<ReviewView> reviews = reviewService.getOrderReviewsForCustomer(orderId, loggedInUser);
         model.addAttribute("reviews", reviews);
         model.addAttribute("orderId", orderId);
         return "reviews/order_reviews_list";
     }
 
+    @GetMapping("/api/product/{productId}")
+    @ResponseBody
+    public ResponseEntity<List<ReviewView>> getProductReviews(@PathVariable Integer productId) {
+        return ResponseEntity.ok(reviewService.getPublishedReviewsForProduct(productId));
+    }
 
-    // == Dành cho ADMIN ==
-
-    @GetMapping("/manage")
-    public String manageReviews(Model model) {
-        List<Review> allReviews = reviewService.getAllActiveReviews();
-        model.addAttribute("reviews", allReviews);
+    // ======================== MANAGER ACTIONS ========================
+    @GetMapping("/manager")
+    public String manageReviews(Model model,
+                                @RequestParam(value = "message", required = false) String message) {
+        model.addAttribute("reviews", reviewService.getReviewsForManagement());
+        if (StringUtils.hasText(message)) {
+            model.addAttribute("successMessage", message);
+        }
         return "reviews/manage_reviews";
     }
 
-    @PostMapping("/delete/{reviewId}")
-    public String deleteReviewByAdmin(@PathVariable Integer reviewId, RedirectAttributes redirectAttributes) {
-        // TODO: Thêm kiểm tra quyền admin!
-        boolean deleted = reviewService.deleteReview(reviewId);
-        if (deleted) {
-            redirectAttributes.addFlashAttribute("successMessage", "Đã xóa (ẩn) đánh giá thành công.");
-        } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "Không tìm thấy hoặc đánh giá đã bị xóa.");
+    @PostMapping("/manager/{reviewId}/reply")
+    public String respondToReview(@PathVariable Integer reviewId,
+                                  @RequestParam("reply") String reply,
+                                  HttpSession session,
+                                  RedirectAttributes redirectAttributes) {
+        Account admin = (Account) session.getAttribute("loggedInUser");
+        try {
+            reviewService.respondToReview(reviewId, reply, admin);
+            redirectAttributes.addFlashAttribute("successMessage", "Đã phản hồi người dùng.");
+        } catch (Exception ex) {
+            redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/reviews/manage";
+        return "redirect:/reviews/manager";
     }
 
-
-    // == API Endpoints (Cập nhật đường dẫn/tham số nếu cần) ==
-
-    @GetMapping("/api/order/{orderId}")
-    @ResponseBody
-    public ResponseEntity<List<Review>> getReviewsForOrderApi(@PathVariable Integer orderId) {
-        List<Review> reviews = reviewService.getReviewsByOrderId(orderId);
-        return ResponseEntity.ok(reviews);
-    }
-
-    // ⭐ THAY ĐỔI ĐƯỜNG DẪN VÀ THAM SỐ ⭐
-    @GetMapping("/api/account/{userId}") // Đổi từ customer/{customerId}
-    @ResponseBody
-    public ResponseEntity<List<Review>> getReviewsByAccountApi(@PathVariable Integer userId) { // Đổi tên tham số
-        List<Review> reviews = reviewService.getReviewsByAccountId(userId); // Gọi service mới
-        return ResponseEntity.ok(reviews);
-    }
-
-    @DeleteMapping("/api/{reviewId}")
-    @ResponseBody
-    public ResponseEntity<String> deleteReviewApi(@PathVariable Integer reviewId) {
-        // TODO: Thêm kiểm tra quyền
-        boolean deleted = reviewService.deleteReview(reviewId);
-        if (deleted) {
-            return ResponseEntity.ok("Đã xóa đánh giá thành công.");
+    @PostMapping("/manager/{reviewId}/hide")
+    public String hideReview(@PathVariable Integer reviewId, RedirectAttributes redirectAttributes) {
+        if (reviewService.updateReviewStatus(reviewId, ReviewStatus.HIDDEN)) {
+            redirectAttributes.addFlashAttribute("successMessage", "Đã ẩn đánh giá.");
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Không tìm thấy đánh giá để xóa.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể ẩn đánh giá.");
         }
+        return "redirect:/reviews/manager";
+    }
+
+    @PostMapping("/manager/{reviewId}/publish")
+    public String publishReview(@PathVariable Integer reviewId, RedirectAttributes redirectAttributes) {
+        if (reviewService.updateReviewStatus(reviewId, ReviewStatus.PUBLISHED)) {
+            redirectAttributes.addFlashAttribute("successMessage", "Đã hiển thị lại đánh giá.");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể hiển thị đánh giá.");
+        }
+        return "redirect:/reviews/manager";
+    }
+
+    @PostMapping("/manager/{reviewId}/spam")
+    public String flagSpam(@PathVariable Integer reviewId,
+                           @RequestParam(value = "flag", defaultValue = "true") boolean flag,
+                           RedirectAttributes redirectAttributes) {
+        if (reviewService.toggleSpamFlag(reviewId, flag)) {
+            redirectAttributes.addFlashAttribute("successMessage",
+                    flag ? "Đã đánh dấu đánh giá là spam." : "Đã bỏ đánh dấu spam.");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể cập nhật trạng thái spam.");
+        }
+        return "redirect:/reviews/manager";
+    }
+
+    @PostMapping("/manager/{reviewId}/delete")
+    public String deleteReview(@PathVariable Integer reviewId, RedirectAttributes redirectAttributes) {
+        if (reviewService.deleteReview(reviewId)) {
+            redirectAttributes.addFlashAttribute("successMessage", "Đã xóa đánh giá.");
+        } else {
+            redirectAttributes.addFlashAttribute("errorMessage", "Không thể xóa đánh giá.");
+        }
+        return "redirect:/reviews/manager";
     }
 }
+

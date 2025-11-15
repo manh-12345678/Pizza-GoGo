@@ -7,7 +7,7 @@ import java.util.List;
 import Group5_pizza.Pizza_GoGo.model.Product;
 
 public class ProductValidator {
-    public static List<String> validate(Product product) {
+      public static List<String> validate(Product product) {
         List<String> errors = new ArrayList<>();
 
         // 🔸 Tên món

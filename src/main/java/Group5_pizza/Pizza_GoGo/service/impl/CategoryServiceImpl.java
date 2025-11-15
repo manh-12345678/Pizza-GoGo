@@ -23,6 +23,11 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    public List<Category> searchCategories(String keyword) {
+        return repository.findByCategoryNameContainingIgnoreCase(keyword);
+    }
+
+    @Override
     public Category getCategoryById(Integer id) {
         return repository.findById(id).orElse(null);
     }

@@ -1,67 +1,66 @@
+// package Group5_pizza.Pizza_GoGo.service.impl;
+// DTOServiceImpl.java
 package Group5_pizza.Pizza_GoGo.service.impl;
-
-import Group5_pizza.Pizza_GoGo.DTO.OrderDTO;
-import Group5_pizza.Pizza_GoGo.DTO.OrderItemDTO; // Sử dụng DTO mới
+import Group5_pizza.Pizza_GoGo.DTO.OrderResponseDTO;
 import Group5_pizza.Pizza_GoGo.model.Order;
-import Group5_pizza.Pizza_GoGo.model.OrderDetail;
-import Group5_pizza.Pizza_GoGo.service.DTOService; // Đảm bảo có Interface này
+import Group5_pizza.Pizza_GoGo.model.Payment;
+import Group5_pizza.Pizza_GoGo.model.RestaurantTable;
+import Group5_pizza.Pizza_GoGo.repository.PaymentRepository;
+import Group5_pizza.Pizza_GoGo.repository.RestaurantTableRepository;
+import Group5_pizza.Pizza_GoGo.service.DTOService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class DTOServiceImpl implements DTOService {
-
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
-
+    private final PaymentRepository paymentRepository;
+    private final RestaurantTableRepository tableRepository;
+    
     @Override
-    public OrderDTO convertToOrderDTO(Order order) {
-        if (order == null) return null;
-
-        OrderDTO dto = new OrderDTO();
-        dto.setOrderId(order.getOrderId());
-
-        // Lấy totalAmount đã được OrderServiceImpl tính toán chính xác
-        dto.setTotalAmount(order.getTotalAmount() != null ? order.getTotalAmount() : BigDecimal.ZERO);
-
-        // Lấy các trường thông tin khác mà JS cần
-        dto.setTable(order.getTable() != null ? String.valueOf(order.getTable().getTableNumber()) : "Mang về");
-        dto.setStatus(order.getStatus() != null ? order.getStatus().toLowerCase() : "unknown"); // JS dùng chữ thường
-        dto.setTime(order.getCreatedAt() != null ? order.getCreatedAt().format(TIME_FORMATTER) : "--:--");
-
-        // Chuyển đổi OrderDetails (đã được lọc bởi ServiceImpl) sang List<OrderItemDTO>
-        if (order.getOrderDetails() != null) {
-            List<OrderItemDTO> itemDTOs = order.getOrderDetails().stream()
-                    .map(this::convertToOrderItemDTO) // Gọi hàm helper đã sửa
-                    .collect(Collectors.toList());
-            dto.setItems(itemDTOs);
-        } else {
-            dto.setItems(Collections.emptyList()); // Đảm bảo items không rỗng
+    @Transactional(readOnly = true)
+    public OrderResponseDTO convertToOrderDTO(Order order) {
+        try {
+            // Load payments và table nếu chưa được load (tránh LazyInitializationException)
+            if (order != null && order.getOrderId() != null) {
+                try {
+                    // Load payments nếu chưa được load
+                    if (!Hibernate.isInitialized(order.getPayments())) {
+                        List<Payment> payments = paymentRepository.findByOrderOrderIdAndIsDeletedFalse(order.getOrderId());
+                        if (payments != null && !payments.isEmpty()) {
+                            order.getPayments().clear();
+                            order.getPayments().addAll(payments);
+                        }
+                    }
+                    // Load table nếu chưa được load (để hiển thị tên bàn trong quản lý đơn hàng)
+                    if (order.getTable() != null) {
+                        if (!Hibernate.isInitialized(order.getTable())) {
+                            // Nếu table chưa được load, load lại từ repository
+                            Integer tableId = order.getTable().getTableId();
+                            if (tableId != null) {
+                                RestaurantTable loadedTable = tableRepository.findById(tableId).orElse(null);
+                                if (loadedTable != null) {
+                                    order.setTable(loadedTable);
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    log.warn("Không thể load payments/table cho Order {}: {}", order.getOrderId(), e.getMessage());
+                }
+            }
+            
+            return new OrderResponseDTO(order);
+        } catch (Exception e) {
+            log.error("Lỗi khi convert Order {} sang DTO: {}", 
+                    order != null ? order.getOrderId() : "null", e.getMessage(), e);
+            throw new RuntimeException("Lỗi khi convert Order sang DTO: " + e.getMessage(), e);
         }
-        return dto;
-    }
-
-    /**
-     * Chuyển đổi OrderDetail sang OrderItemDTO (khớp với JS: name, qty, price)
-     * Tính toán tổng tiền cho từng dòng (price = unitPrice * quantity)
-     */
-    private OrderItemDTO convertToOrderItemDTO(OrderDetail detail) {
-        OrderItemDTO itemDTO = new OrderItemDTO();
-
-        itemDTO.setName(detail.getProduct() != null ? detail.getProduct().getName() : "Sản phẩm lỗi");
-
-        int quantity = detail.getQuantity() != null ? detail.getQuantity() : 0;
-        itemDTO.setQty(quantity);
-
-        BigDecimal unitPrice = detail.getUnitPrice() != null ? detail.getUnitPrice() : BigDecimal.ZERO;
-        itemDTO.setPrice(unitPrice.multiply(BigDecimal.valueOf(quantity))); // Tính tổng tiền dòng
-
-        // Bỏ qua 'note' vì OrderDetail gốc không có
-
-        return itemDTO;
     }
 }

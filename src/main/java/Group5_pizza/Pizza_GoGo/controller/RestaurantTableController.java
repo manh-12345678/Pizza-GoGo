@@ -18,7 +18,7 @@ import Group5_pizza.Pizza_GoGo.util.QRCodeGenerator;
 import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
-@RequestMapping("/tables")
+@RequestMapping({"/tables","/manager/tables"})
 public class RestaurantTableController {
 
     private final RestaurantTableService restaurantTableService;
@@ -27,10 +27,11 @@ public class RestaurantTableController {
         this.restaurantTableService = restaurantTableService;
     }
 
-    @GetMapping
+    @GetMapping({"", "/list"})
     public String getAllTables(Model model) {
         List<RestaurantTable> tables = restaurantTableService.getAllTables();
         model.addAttribute("tables", tables);
+        model.addAttribute("activePage", "tables");
         return "tables/list";
     }
 
@@ -40,7 +41,7 @@ public class RestaurantTableController {
         return "tables/form";
     }
 
-    @PostMapping
+    @PostMapping({"", "/"})
     public String createTable(@ModelAttribute RestaurantTable table,
             RedirectAttributes redirectAttributes,
             HttpServletRequest request) {
@@ -70,11 +71,11 @@ public class RestaurantTableController {
 
             redirectAttributes.addFlashAttribute("success",
                     "Bàn #" + savedTable.getTableNumber() + " tạo thành công! QR code đã sẵn sàng.");
-            return "redirect:/tables";
+            return "redirect:/manager/tables";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error",
                     "Tạo bàn thất bại: " + e.getMessage());
-            return "redirect:/tables/new";
+            return "redirect:/manager/tables/new";
         }
     }
 
@@ -115,10 +116,10 @@ public class RestaurantTableController {
             }
 
             redirectAttributes.addFlashAttribute("success", "Bàn cập nhật thành công!");
-            return "redirect:/tables";
+            return "redirect:/manager/tables";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Cập nhật bàn thất bại: " + e.getMessage());
-            return "redirect:/tables/edit/" + id;
+            return "redirect:/manager/tables/edit/" + id;
         }
     }
 
@@ -139,17 +140,17 @@ public class RestaurantTableController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Xóa bàn thất bại: " + e.getMessage());
         }
-        return "redirect:/tables";
+        return "redirect:/manager/tables";
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/view/{id}")
     public String getTableById(@PathVariable Integer id, Model model) {
         try {
             RestaurantTable table = restaurantTableService.getTableById(id);
             model.addAttribute("table", table);
             return "tables/view";
         } catch (Exception e) {
-            return "redirect:/tables";
+            return "redirect:/manager/tables";
         }
     }
 }
