@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{manager/fragments/layout :: managerHead('Quản lý đánh giá', ~{::extraHead})}">
+    <th:block th:fragment="extraHead">
+        <style>
+            .review-rating span { color: #ffc107; }
+            .badge-status { text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.04em; }
+            .review-actions form { display: inline-block; }
+            .table td { vertical-align: top; }
+            .textarea-reply { min-height: 90px; resize: vertical; }
+        </style>
+    </th:block>
+</head>
+<body>
+<div th:replace="~{manager/fragments/layout :: managerLayout('reviews', ~{::pageContent})}">
+    <div th:fragment="pageContent">
+        <div class="container-fluid px-0">
+            <h2 class="manager-page-title d-flex align-items-center gap-2">
+                <i class="bi bi-stars text-primary"></i>
+                Quản lý đánh giá sản phẩm
+            </h2>
+            <p class="manager-page-subtitle">
+                Theo dõi phản hồi của khách hàng, trả lời và xử lý các đánh giá không phù hợp.
+            </p>
+
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Đơn hàng &amp; sản phẩm</th>
+                                <th>Khách hàng</th>
+                                <th class="text-center">Đánh giá</th>
+                                <th>Nội dung</th>
+                                <th>Phản hồi của Admin</th>
+                                <th class="text-center">Trạng thái</th>
+                                <th class="text-center">Hành động</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="review : ${reviews}" th:classappend="${review.deleted} ? 'table-danger'">
+                                <td class="fw-semibold text-secondary">
+                                    <span th:text="${review.reviewId}">1</span>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">
+                                        <i class="bi bi-receipt"></i>
+                                        <span th:text="'Đơn #' + ${review.orderId}">Đơn #101</span>
+                                    </div>
+                                    <div class="text-muted small">
+                                        <i class="bi bi-bag-check"></i>
+                                        <span th:text="${review.productName}">Pizza Hải sản</span>
+                                    </div>
+                                    <div class="text-muted small" th:text="${#temporals.format(review.createdAt, 'dd/MM/yyyy HH:mm')}">
+                                        12/11/2025 20:15
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold" th:text="${review.customerName}">Nguyễn Văn A</div>
+                                    <div class="text-muted small" th:if="${review.flaggedSpam}">
+                                        <i class="bi bi-exclamation-circle text-danger"></i> Bị đánh dấu spam
+                                    </div>
+                                </td>
+                                <td class="text-center review-rating text-nowrap">
+                                    <span th:each="i : ${#numbers.sequence(1, review.rating)}">★</span>
+                                    <span class="text-muted" th:each="i : ${#numbers.sequence(1, 5 - review.rating)}">★</span>
+                                </td>
+                                <td>
+                                    <div th:if="${#strings.isEmpty(review.comment)}" class="text-muted fst-italic">
+                                        (Không có bình luận)
+                                    </div>
+                                    <div th:if="${!#strings.isEmpty(review.comment)}" th:text="${review.comment}"></div>
+                                </td>
+                                <td>
+                                    <div th:if="${review.adminReply != null}">
+                                        <div class="mb-1" th:text="${review.adminReply}"></div>
+                                        <div class="text-muted small">
+                                            <i class="bi bi-person-badge"></i>
+                                            <span th:text="${review.adminResponder}">Quản trị viên</span>
+                                            <span th:if="${review.adminReplyAt != null}"
+                                                  th:text="${' • ' + #temporals.format(review.adminReplyAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                        </div>
+                                    </div>
+                                    <form th:action="@{/reviews/manager/{id}/reply(id=${review.reviewId})}" method="post"
+                                          class="mt-2">
+                                        <div class="mb-2">
+                                            <textarea class="form-control textarea-reply"
+                                                      name="reply"
+                                                      placeholder="Trả lời khách hàng..."
+                                                      th:text="${review.adminReply != null ? review.adminReply : ''}"></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-reply"></i> Gửi phản hồi
+                                        </button>
+                                    </form>
+                                </td>
+                                <td class="text-center">
+                                    <span th:class="'badge badge-status bg-' + ${review.status == T(Group5_pizza.Pizza_GoGo.model.enums.ReviewStatus).PUBLISHED ? 'success' : review.status == T(Group5_pizza.Pizza_GoGo.model.enums.ReviewStatus).HIDDEN ? 'secondary' : 'danger'}"
+                                          th:text="${review.status}">PUBLISHED</span>
+                                    <div class="text-danger small fw-semibold" th:if="${review.deleted}">
+                                        <i class="bi bi-trash"></i> Đã xóa
+                                    </div>
+                                </td>
+                                <td class="text-center review-actions">
+                                    <div class="d-flex flex-column gap-2">
+                                        <form th:if="${review.status != T(Group5_pizza.Pizza_GoGo.model.enums.ReviewStatus).PUBLISHED}"
+                                              th:action="@{/reviews/manager/{id}/publish(id=${review.reviewId})}"
+                                              method="post">
+                                            <button type="submit" class="btn btn-sm btn-outline-success w-100">
+                                                <i class="bi bi-eye"></i> Hiển thị
+                                            </button>
+                                        </form>
+                                        <form th:if="${review.status == T(Group5_pizza.Pizza_GoGo.model.enums.ReviewStatus).PUBLISHED}"
+                                              th:action="@{/reviews/manager/{id}/hide(id=${review.reviewId})}"
+                                              method="post">
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary w-100">
+                                                <i class="bi bi-eye-slash"></i> Ẩn
+                                            </button>
+                                        </form>
+                                        <form th:action="@{/reviews/manager/{id}/spam(id=${review.reviewId})}"
+                                              method="post">
+                                            <input type="hidden" name="flag" th:value="${!review.flaggedSpam}">
+                                            <button type="submit"
+                                                    th:class="'btn btn-sm w-100 ' + (${review.flaggedSpam} ? 'btn-outline-info' : 'btn-outline-warning')">
+                                                <i class="bi"
+                                                   th:classappend="${review.flaggedSpam} ? ' bi-flag' : ' bi-flag-fill'"></i>
+                                                <span th:text="${review.flaggedSpam ? 'Bỏ spam' : 'Spam'}"></span>
+                                            </button>
+                                        </form>
+                                        <form th:action="@{/reviews/manager/{id}/delete(id=${review.reviewId})}"
+                                              method="post"
+                                              onsubmit="return confirm('Xóa đánh giá này? Hành động sẽ ẩn hoàn toàn đánh giá khỏi người dùng.');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                                                <i class="bi bi-trash"></i> Xóa
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(reviews)}">
+                                <td colspan="8" class="text-center py-4 text-muted">
+                                    Chưa có đánh giá nào.
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{manager/fragments/layout :: managerScripts(~{manager/fragments/layout :: emptyScripts})}"></th:block>
+</body>
+</html>

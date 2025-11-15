@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{manager/fragments/layout :: managerLayout('promotions', ~{::content})}">
+<body>
+<div th:fragment="content">
+    <div th:replace="~{manager/fragments/layout :: managerHead('Thêm/Sửa promotion', ~{manager/fragments/layout :: emptyScripts})}"></div>
+    
+    <h1 class="manager-page-title" th:text="${isEdit != null and isEdit ? 'Sửa promotion' : 'Thêm promotion mới'}"></h1>
+    
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5>Thông tin promotion</h5>
+        </div>
+        <div class="card-body">
+            <form th:action="${(isEdit != null and isEdit and promotion != null) ? '/manager/promotions/edit/' + promotion.promotionId : '/manager/promotions/add'}" method="post">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Tên promotion <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" 
+                               th:value="${promotion?.name}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Loại <span class="text-danger">*</span></label>
+                        <select name="type" class="form-select" id="promotion-type" required onchange="togglePromotionFields()">
+                            <option value="">Chọn loại</option>
+                            <option value="VOUCHER" th:selected="${promotion?.type == 'VOUCHER'}">Voucher (Tự động tạo mã)</option>
+                            <option value="GIFT" th:selected="${promotion?.type == 'GIFT'}">Quà tặng (Cần xác nhận)</option>
+                            <option value="PRODUCT" th:selected="${promotion?.type == 'PRODUCT'}">Tặng món (Thêm sản phẩm vào đơn)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Mô tả</label>
+                    <textarea name="description" class="form-control" rows="3" th:text="${promotion?.description}"></textarea>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Điểm yêu cầu <span class="text-danger">*</span></label>
+                        <input type="number" name="pointsRequired" class="form-control" min="1" 
+                               th:value="${promotion?.pointsRequired}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Số lượng (để trống = không giới hạn)</label>
+                        <input type="number" name="stockQuantity" class="form-control" min="0" 
+                               th:value="${promotion?.stockQuantity}">
+                    </div>
+                </div>
+                
+                <!-- Voucher fields -->
+                <div id="voucher-fields" style="display: none;">
+                    <div class="mb-3">
+                        <label class="form-label">Voucher ID (nếu đã có voucher sẵn)</label>
+                        <input type="number" name="voucherId" class="form-control" 
+                               th:value="${promotion?.voucherId}">
+                        <small class="text-muted">Để trống nếu muốn tự động tạo mã voucher mới</small>
+                    </div>
+                </div>
+                
+                <!-- Gift fields -->
+                <div id="gift-fields" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tên quà tặng</label>
+                            <input type="text" name="giftName" class="form-control" 
+                                   th:value="${promotion?.giftName}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Mô tả quà tặng</label>
+                            <input type="text" name="giftDescription" class="form-control" 
+                                   th:value="${promotion?.giftDescription}">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Product fields -->
+                <div id="product-fields" style="display: none;">
+                    <div class="mb-3">
+                        <label class="form-label">Product ID (ID sản phẩm sẽ được tặng)</label>
+                        <input type="number" name="productId" class="form-control" id="product-id-input" 
+                               th:value="${promotion?.productId}">
+                        <small class="text-muted">Nhập ID sản phẩm sẽ được tặng khi đổi promotion này</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Số lượng sản phẩm tặng</label>
+                        <input type="number" name="productQuantity" class="form-control" min="1" 
+                               id="product-quantity-input" th:value="${promotion?.productQuantity != null ? promotion.productQuantity : 1}">
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Ngày bắt đầu</label>
+                        <input type="datetime-local" name="startDate" class="form-control" 
+                               th:value="${promotion?.startDate != null ? #strings.replace(#temporals.format(promotion.startDate, 'yyyy-MM-dd HH:mm'), ' ', 'T') : ''}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Ngày kết thúc</label>
+                        <input type="datetime-local" name="endDate" class="form-control" 
+                               th:value="${promotion?.endDate != null ? #strings.replace(#temporals.format(promotion.endDate, 'yyyy-MM-dd HH:mm'), ' ', 'T') : ''}">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">URL hình ảnh</label>
+                    <input type="url" name="imageUrl" class="form-control" 
+                           th:value="${promotion?.imageUrl}">
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input type="checkbox" name="isActive" class="form-check-input" id="isActive" 
+                               th:checked="${promotion?.isActive != null ? promotion.isActive : true}">
+                        <label class="form-check-label" for="isActive">Kích hoạt ngay</label>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" th:text="${(isEdit != null and isEdit) ? 'Cập nhật' : 'Thêm promotion'}"></button>
+                    <a th:href="@{/manager/promotions}" class="btn btn-secondary">Hủy</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div th:replace="~{manager/fragments/layout :: managerScripts(~{manager/fragments/layout :: emptyScripts})}"></div>
+<script>
+    function togglePromotionFields() {
+        const type = document.getElementById('promotion-type').value;
+        document.getElementById('voucher-fields').style.display = type === 'VOUCHER' ? 'block' : 'none';
+        document.getElementById('gift-fields').style.display = type === 'GIFT' ? 'block' : 'none';
+        document.getElementById('product-fields').style.display = type === 'PRODUCT' ? 'block' : 'none';
+    }
+    
+    // Tự động toggle khi load trang (cho edit mode)
+    document.addEventListener('DOMContentLoaded', function() {
+        togglePromotionFields();
+    });
+</script>
+</body>
+</html>
+

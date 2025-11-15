@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEdit != null && isEdit ? 'Chỉnh sửa Voucher' : 'Thêm Voucher Mới'}">Thêm Voucher Mới</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { padding: 20px; background-color: #f8f9fa; }
+        .card { margin-bottom: 20px; }
+        .form-label { font-weight: 600; }
+        .text-danger { color: #dc3545 !important; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2 class="mb-4">
+        <i class="bi bi-ticket-perforated"></i> 
+        <span th:text="${isEdit != null && isEdit ? 'Chỉnh sửa Voucher' : 'Thêm Voucher Mới'}"></span>
+    </h2>
+
+    <!-- Error Message -->
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form th:action="${isEdit != null && isEdit ? '/vouchers/edit/' + voucherDTO.voucherId : '/vouchers/add'}" 
+                  th:object="${voucherDTO}" method="post">
+                
+                <!-- Voucher Code -->
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="code" class="form-label">Mã Voucher <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="code" th:field="*{code}" 
+                               placeholder="Nhập mã voucher (VD: SALE2024)" 
+                               style="text-transform: uppercase;"
+                               oninput="this.value = this.value.toUpperCase()"
+                               required>
+                        <small class="form-text text-muted">Mã voucher sẽ được chuyển thành chữ in hoa tự động</small>
+                    </div>
+                </div>
+
+                <!-- Discount Type Selection -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="discountPercent" class="form-label">Giảm giá theo phần trăm (%)</label>
+                        <input type="number" class="form-control" id="discountPercent" 
+                               th:field="*{discountPercent}" 
+                               placeholder="0-100" min="0" max="100" step="0.01">
+                        <small class="form-text text-muted">Nhập phần trăm giảm giá (0-100)</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="discountAmount" class="form-label">Giảm giá theo số tiền (VNĐ)</label>
+                        <input type="number" class="form-control" id="discountAmount" 
+                               th:field="*{discountAmount}" 
+                               placeholder="Nhập số tiền giảm" min="0" step="1000">
+                        <small class="form-text text-muted">Nhập số tiền giảm giá cố định</small>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> 
+                    <strong>Lưu ý:</strong> Bạn phải nhập ít nhất một trong hai loại giảm giá (phần trăm hoặc số tiền).
+                </div>
+
+                <!-- Date Range -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="startDate" class="form-label">Ngày bắt đầu</label>
+                        <input type="datetime-local" class="form-control" id="startDate" 
+                               th:field="*{startDate}">
+                        <small class="form-text text-muted">Thời gian bắt đầu áp dụng voucher</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="endDate" class="form-label">Ngày kết thúc</label>
+                        <input type="datetime-local" class="form-control" id="endDate" 
+                               th:field="*{endDate}">
+                        <small class="form-text text-muted">Thời gian kết thúc áp dụng voucher</small>
+                    </div>
+                </div>
+
+                <!-- Active Status -->
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="isActive" 
+                                   th:field="*{isActive}">
+                            <label class="form-check-label" for="isActive">
+                                <strong>Kích hoạt voucher</strong>
+                            </label>
+                            <br>
+                            <small class="form-text text-muted">Voucher chỉ có hiệu lực khi được kích hoạt</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <a th:href="@{/manager/vouchers/manage}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Hủy
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save"></i> 
+                        <span th:text="${isEdit != null && isEdit ? 'Cập nhật' : 'Lưu Voucher'}"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Format datetime-local input for display
+    document.addEventListener('DOMContentLoaded', function() {
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        
+        // Format existing dates if present
+        if (startDateInput.value) {
+            const date = new Date(startDateInput.value);
+            startDateInput.value = date.toISOString().slice(0, 16);
+        }
+        
+        if (endDateInput.value) {
+            const date = new Date(endDateInput.value);
+            endDateInput.value = date.toISOString().slice(0, 16);
+        }
+    });
+
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const discountPercent = document.getElementById('discountPercent').value;
+        const discountAmount = document.getElementById('discountAmount').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        
+        // Check if at least one discount type is provided
+        if ((!discountPercent || discountPercent <= 0) && (!discountAmount || discountAmount <= 0)) {
+            e.preventDefault();
+            alert('Vui lòng nhập ít nhất một loại giảm giá (phần trăm hoặc số tiền)');
+            return false;
+        }
+        
+        // Validate discount percent range
+        if (discountPercent && (discountPercent < 0 || discountPercent > 100)) {
+            e.preventDefault();
+            alert('Phần trăm giảm giá phải từ 0 đến 100');
+            return false;
+        }
+        
+        // Validate date range
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            if (start > end) {
+                e.preventDefault();
+                alert('Ngày bắt đầu phải trước ngày kết thúc');
+                return false;
+            }
+        }
+        
+        return true;
+    });
+</script>
+</body>
+</html>
+

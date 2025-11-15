@@ -1,0 +1,138 @@
+<!-- File: toppings/topping_form.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${isEdit ? 'Chỉnh sửa Topping' : 'Thêm Topping'}">Topping Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { padding: 20px; background-color: #f8f9fa; }
+        .card { margin-bottom: 20px; }
+        .form-label { font-weight: 500; }
+        .required::after { content: " *"; color: red; }
+        .ingredient-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .ingredient-row .form-select { flex: 3; }
+        .ingredient-row .form-control { flex: 2; }
+        .ingredient-row .btn { flex-shrink: 0; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2 class="mb-4">
+        <i class="bi bi-plus-circle-dotted"></i>
+        <span th:text="${isEdit ? 'Chỉnh sửa Topping' : 'Thêm Topping Mới'}"></span>
+    </h2>
+
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form th:action="${isEdit ? '/toppings/edit/' + toppingDTO.toppingId : '/toppings/add'}"
+                  th:object="${toppingDTO}" method="post">
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="name" class="form-label required">Tên Topping</label>
+                        <input type="text" class="form-control" id="name" th:field="*{name}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="price" class="form-label required">Giá (VNĐ)</label>
+                        <input type="number" step="1000" class="form-control" id="price" th:field="*{price}" required min="0">
+                    </div>
+                </div>
+
+                <hr>
+
+                <h5>Nguyên vật liệu sử dụng</h5>
+
+                <div id="ingredient-list-container">
+                    <div th:each="ing, iterStat : *{ingredients}" class="ingredient-row">
+                        <select class="form-select" th:name="|ingredients[${iterStat.index}].ingredientId|">
+                            <option value="">-- Chọn NVL --</option>
+                            <option th:each="opt : ${allIngredients}"
+                                    th:value="${opt.ingredientId}"
+                                    th:text="${opt.name + ' (' + opt.unit + ')'}"
+                                    th:selected="${opt.ingredientId == ing.ingredientId}"></option>
+                        </select>
+                        <input type="number" step="0.01" class="form-control" placeholder="Số lượng"
+                               th:name="|ingredients[${iterStat.index}].quantityUsed|"
+                               th:value="${ing.quantityUsed}" min="0">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeIngredientRow(this)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="button" id="add-ingredient-btn" class="btn btn-outline-success btn-sm mt-2">
+                    <i class="bi bi-plus-circle"></i> Thêm Nguyên vật liệu
+                </button>
+
+                <template id="ingredient-row-template">
+                    <div class="ingredient-row">
+                        <select class="form-select" name="ingredients[0].ingredientId">
+                            <option value="">-- Chọn NVL --</option>
+                            <option th:each="opt : ${allIngredients}"
+                                    th:value="${opt.ingredientId}"
+                                    th:text="${opt.name + ' (' + opt.unit + ')'}"></option>
+                        </select>
+                        <input type="number" step="0.01" class="form-control" name="ingredients[0].quantityUsed" placeholder="Số lượng" min="0">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeIngredientRow(this)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </template>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a th:href="@{/manager/toppings/manage}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Hủy
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i>
+                        <span th:text="${isEdit ? 'Cập nhật' : 'Thêm Topping'}"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:inline="javascript">
+    // ❗ FIX: Thêm hàm renumber (tương tự Product)
+    function renumberIngredientRows() {
+        const rows = document.querySelectorAll('#ingredient-list-container .ingredient-row');
+        rows.forEach((row, index) => {
+            row.querySelector('select').name = `ingredients[${index}].ingredientId`;
+            row.querySelector('input[type="number"]').name = `ingredients[${index}].quantityUsed`;
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const container = document.getElementById('ingredient-list-container');
+        const template = document.getElementById('ingredient-row-template');
+        let ingredientIndex = container.querySelectorAll('.ingredient-row').length;
+
+        document.getElementById('add-ingredient-btn').addEventListener('click', function() {
+            const clone = template.content.cloneNode(true);
+            const newRow = clone.querySelector('.ingredient-row');
+            newRow.querySelector('select').name = `ingredients[${ingredientIndex}].ingredientId`;
+            newRow.querySelector('input').name = `ingredients[${ingredientIndex}].quantityUsed`;
+            container.appendChild(newRow);
+            ingredientIndex++;
+            renumberIngredientRows(); // ❗ THÊM
+        });
+    });
+
+    // ❗ FIX: Gọi renumber sau remove
+    function removeIngredientRow(button) {
+        button.closest('.ingredient-row').remove();
+        renumberIngredientRows(); // ❗ THÊM
+    }
+</script>
+</body>
+</html>

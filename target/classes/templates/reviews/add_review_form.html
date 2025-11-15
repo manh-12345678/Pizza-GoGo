@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Đánh giá sản phẩm</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { background: #f8fafc; min-height: 100vh; }
+        .review-card { border-radius: 18px; border: none; box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08); }
+        .rating-group { direction: rtl; display: inline-flex; gap: 4px; }
+        .rating-group input { display: none; }
+        .rating-group label {
+            font-size: 1.8rem;
+            color: #d1d5db;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        .rating-group label:hover,
+        .rating-group label:hover ~ label,
+        .rating-group input:checked ~ label {
+            color: #fbbf24;
+        }
+    </style>
+</head>
+<body>
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold mb-2">
+            <i class="bi bi-chat-square-heart text-warning"></i>
+            Đánh giá đơn hàng #<span th:text="${orderId}"></span>
+        </h1>
+        <p class="text-muted">
+            Cảm ơn bạn đã tin tưởng Pizza GoGo. Hãy chia sẻ cảm nhận về từng món đã thưởng thức để chúng tôi phục vụ tốt hơn.
+        </p>
+    </div>
+
+    <div class="row justify-content-center mb-4" th:if="${successMessage}">
+        <div class="col-lg-8">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill"></i>
+                <span th:text="${successMessage}">Cảm ơn bạn!</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-center mb-4" th:if="${errorMessage}">
+        <div class="col-lg-8">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span th:text="${errorMessage}">Có lỗi xảy ra</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <form th:action="@{/reviews/order/{orderId}(orderId=${orderId})}"
+                  th:object="${reviewForm}"
+                  method="post"
+                  class="d-flex flex-column gap-4">
+                <input type="hidden" th:field="*{orderId}">
+
+                <div th:each="item, stat : *{items}" class="card review-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <div class="badge bg-primary-subtle text-primary fw-semibold mb-2 text-uppercase">
+                                    Sản phẩm
+                                </div>
+                                <h5 class="card-title mb-1" th:text="${item.productName}">Tên sản phẩm</h5>
+                                <p class="text-muted small mb-0">
+                                    Số lượng: <span th:text="${item.quantity}">1</span>
+                                </p>
+                            </div>
+                            <div class="text-end" th:if="${item.alreadyReviewed}">
+                                <span class="badge bg-success-subtle text-success">
+                                    <i class="bi bi-check-circle"></i> Đã đánh giá
+                                </span>
+                            </div>
+                        </div>
+
+                        <input type="hidden" th:field="*{items[__${stat.index}__].reviewId}">
+                        <input type="hidden" th:field="*{items[__${stat.index}__].orderDetailId}">
+                        <input type="hidden" th:field="*{items[__${stat.index}__].productId}">
+                        <input type="hidden" th:field="*{items[__${stat.index}__].productName}">
+                        <input type="hidden" th:field="*{items[__${stat.index}__].quantity}">
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary">Mức độ hài lòng <span class="text-danger">*</span></label>
+                            <div class="rating-group">
+                                <input type="radio"
+                                       th:id="|item-${stat.index}-star-5|"
+                                       th:field="*{items[__${stat.index}__].rating}"
+                                       th:value="5">
+                                <label th:for="|item-${stat.index}-star-5|">★</label>
+
+                                <input type="radio"
+                                       th:id="|item-${stat.index}-star-4|"
+                                       th:field="*{items[__${stat.index}__].rating}"
+                                       th:value="4">
+                                <label th:for="|item-${stat.index}-star-4|">★</label>
+
+                                <input type="radio"
+                                       th:id="|item-${stat.index}-star-3|"
+                                       th:field="*{items[__${stat.index}__].rating}"
+                                       th:value="3">
+                                <label th:for="|item-${stat.index}-star-3|">★</label>
+
+                                <input type="radio"
+                                       th:id="|item-${stat.index}-star-2|"
+                                       th:field="*{items[__${stat.index}__].rating}"
+                                       th:value="2">
+                                <label th:for="|item-${stat.index}-star-2|">★</label>
+
+                                <input type="radio"
+                                       th:id="|item-${stat.index}-star-1|"
+                                       th:field="*{items[__${stat.index}__].rating}"
+                                       th:value="1">
+                                <label th:for="|item-${stat.index}-star-1|">★</label>
+                            </div>
+                            <p class="text-muted small mb-0 mt-2">Chọn số sao tương ứng với trải nghiệm của bạn (bắt buộc).</p>
+                        </div>
+
+                        <div>
+                            <label class="form-label fw-semibold text-secondary">Chia sẻ cảm nhận (tùy chọn)</label>
+                            <textarea class="form-control"
+                                      th:field="*{items[__${stat.index}__].comment}"
+                                      rows="3"
+                                      maxlength="1000"
+                                      placeholder="Bạn thích điều gì ở món ăn này?"></textarea>
+                            <div class="form-text text-end">
+                                Tối đa 1000 ký tự.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap justify-content-between align-items-center mt-2 gap-3">
+                    <div class="text-muted small">
+                        Bạn chỉ cần đánh giá những món đã dùng. Các mục để trống sẽ được bỏ qua.
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a th:href="@{/orders/{id}(id=${orderId})}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left"></i> Quay lại chi tiết đơn hàng
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send-fill"></i> Gửi đánh giá
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Đợi DOM load xong
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        if (!form) {
+            console.error('Form not found!');
+            return;
+        }
+        
+        // Debug: Log form data trước khi submit
+        form.addEventListener('submit', function(e) {
+            console.log('=== FORM SUBMIT DEBUG ===');
+            
+            // Log tất cả form fields
+            const formData = new FormData(this);
+            console.log('Form data:');
+            for (let [key, value] of formData.entries()) {
+                console.log(key + ' = ' + value);
+            }
+            
+            // Kiểm tra rating - tìm tất cả radio buttons đã checked
+            let hasRating = false;
+            const allRadioInputs = document.querySelectorAll('input[type="radio"]');
+            const checkedRatings = [];
+            
+            allRadioInputs.forEach(input => {
+                if (input.checked && input.name && input.name.includes('rating')) {
+                    console.log('Found checked rating: name=' + input.name + ', value=' + input.value);
+                    checkedRatings.push({name: input.name, value: input.value});
+                    if (input.value && parseInt(input.value) >= 1 && parseInt(input.value) <= 5) {
+                        hasRating = true;
+                    }
+                }
+            });
+            
+            console.log('Checked ratings:', checkedRatings);
+            console.log('Has valid rating:', hasRating);
+            
+            if (!hasRating) {
+                e.preventDefault();
+                alert('Vui lòng chọn ít nhất một đánh giá (sao) cho sản phẩm bạn muốn đánh giá.');
+                return false;
+            }
+            
+            console.log('Form validation passed, submitting...');
+            return true;
+        });
+        
+        // Hiển thị số sao đã chọn
+        document.querySelectorAll('input[type="radio"]').forEach(input => {
+            if (input.name && input.name.includes('rating')) {
+                input.addEventListener('change', function() {
+                    console.log('Rating changed: name=' + this.name + ', value=' + this.value);
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

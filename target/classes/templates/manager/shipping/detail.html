@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{manager/fragments/layout :: managerLayout('shipping', ~{::content})}">
+<body>
+<div th:fragment="content">
+    <div th:replace="~{manager/fragments/layout :: managerHead('Chi tiết giao hàng', ~{manager/fragments/layout :: emptyScripts})}"></div>
+    
+    <h1 class="manager-page-title">Chi tiết giao hàng #<span th:text="${shipping.shippingId}"></span></h1>
+    
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Thông tin giao hàng</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Mã đơn hàng:</strong> #<span th:text="${shipping.order.orderId}"></span></p>
+                    <p><strong>Địa chỉ:</strong> <span th:text="${shipping.address}"></span></p>
+                    <p><strong>Người nhận:</strong> <span th:text="${shipping.contactName}"></span></p>
+                    <p><strong>Số điện thoại:</strong> <span th:text="${shipping.contactPhone}"></span></p>
+                    <p><strong>Trạng thái:</strong> 
+                        <span th:if="${shipping.status == 'PENDING'}" class="badge bg-warning">Chờ xử lý</span>
+                        <span th:if="${shipping.status == 'ASSIGNED'}" class="badge bg-info">Đã phân công</span>
+                        <span th:if="${shipping.status == 'IN_TRANSIT'}" class="badge bg-primary">Đang giao</span>
+                        <span th:if="${shipping.status == 'OUT_FOR_DELIVERY'}" class="badge bg-primary">Đang trên đường</span>
+                        <span th:if="${shipping.status == 'DELIVERED'}" class="badge bg-success">Đã giao</span>
+                        <span th:if="${shipping.status == 'CANCELLED'}" class="badge bg-danger">Đã hủy</span>
+                    </p>
+                    <p th:if="${shipping.shipperName != null}">
+                        <strong>Shipper:</strong> <span th:text="${shipping.shipperName}"></span>
+                        <br><small class="text-muted" th:text="${shipping.shipperPhone}"></small>
+                    </p>
+                    <p th:if="${shipping.deliveredAt != null}">
+                        <strong>Ngày giao:</strong> <span th:text="${#temporals.format(shipping.deliveredAt, 'dd/MM/yyyy HH:mm')}"></span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Cập nhật trạng thái</h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/manager/shipping/{id}/update-status(id=${shipping.shippingId})}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Trạng thái</label>
+                            <select name="status" class="form-select" required>
+                                <option value="PENDING" th:selected="${shipping.status == 'PENDING'}">Chờ xử lý</option>
+                                <option value="ASSIGNED" th:selected="${shipping.status == 'ASSIGNED'}">Đã phân công</option>
+                                <option value="IN_TRANSIT" th:selected="${shipping.status == 'IN_TRANSIT'}">Đang giao</option>
+                                <option value="OUT_FOR_DELIVERY" th:selected="${shipping.status == 'OUT_FOR_DELIVERY'}">Đang trên đường</option>
+                                <option value="DELIVERED" th:selected="${shipping.status == 'DELIVERED'}">Đã giao</option>
+                                <option value="CANCELLED" th:selected="${shipping.status == 'CANCELLED'}">Đã hủy</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tên shipper (tùy chọn)</label>
+                            <input type="text" name="shipperName" class="form-control" th:value="${shipping.shipperName}">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Số điện thoại shipper (tùy chọn)</label>
+                            <input type="text" name="shipperPhone" class="form-control" th:value="${shipping.shipperPhone}">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Cập nhật</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5>Thao tác nhanh</h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/manager/shipping/{id}/mark-delivered(id=${shipping.shippingId})}" method="post" class="mb-2">
+                        <button type="submit" class="btn btn-success w-100" th:disabled="${shipping.status == 'DELIVERED'}">
+                            <i class="bi bi-check-circle"></i> Đánh dấu đã giao
+                        </button>
+                    </form>
+                    <a th:href="@{/manager/shipping}" class="btn btn-secondary w-100">
+                        <i class="bi bi-arrow-left"></i> Quay lại danh sách
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="~{manager/fragments/layout :: managerScripts(~{manager/fragments/layout :: emptyScripts})}"></div>
+</body>
+</html>
+

@@ -1,25 +1,20 @@
 package Group5_pizza.Pizza_GoGo.model;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList; // Thêm import
+import java.util.List; // Thêm import
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference; // Thêm import
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*; // Đảm bảo import đầy đủ
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Entity
-@Table(name = "Account")
+@Table(name = "Account") // Tên bảng nên là Accounts (số nhiều) nếu theo convention
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -39,43 +34,57 @@ public class Account {
     @Column(name = "FullName", length = 100)
     private String fullName;
 
-    @Column(name = "Email", nullable = false, unique = true, length = 100)  // Thêm trường email
+    @Column(name = "Email", nullable = false, unique = true, length = 100)
     private String email;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY) // Thêm fetch lazy
     @JoinColumn(name = "RoleId", nullable = false)
     @ToString.Exclude
     @JsonBackReference
-    private Role role;
+    private Role role; // Cần có model Role
 
-    @Column(name = "CreatedAt", updatable = false, columnDefinition = "DATETIME DEFAULT GETDATE()")
+    @Column(name = "CreatedAt", nullable = false, updatable = false) // Nên để nullable = false
     private LocalDateTime createdAt;
 
     @Column(name = "UpdatedAt")
     private LocalDateTime updatedAt;
 
-    @OneToOne
+    // Quan hệ OneToOne với Customer có thể vẫn giữ nếu cần
+    @OneToOne(fetch = FetchType.LAZY) // Thêm fetch lazy
     @JoinColumn(name = "CustomerId", unique = true)
     @ToString.Exclude
     @JsonBackReference
     private Customer customer;
 
-    @Column(name = "IsDeleted", columnDefinition = "BIT DEFAULT 0")
+    @Column(name = "IsDeleted", nullable = false) // Nên để nullable = false
     private Boolean isDeleted = false;
 
-    @Column(name = "IsConfirmed", columnDefinition = "BIT DEFAULT 0")  // Thêm flag xác nhận email
+    @Column(name = "IsConfirmed", nullable = false) // Nên để nullable = false
     private Boolean isConfirmed = false;
 
-    public Account(LocalDateTime createdAt, Customer customer, String email, String fullName, String passwordHash, Role role, LocalDateTime updatedAt, Integer userId, String username) {
-        this.createdAt = createdAt;
-        this.customer = customer;
-        this.email = email;
-        this.fullName = fullName;
-        this.passwordHash = passwordHash;
-        this.role = role;
-        this.updatedAt = updatedAt;
-        this.userId = userId;
-        this.username = username;
+    // ⭐ THÊM MỚI: Liên kết OneToMany tới Review ⭐
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @ToString.Exclude // Tránh vòng lặp toString
+    @JsonManagedReference // Phía "một" của quan hệ
+    private List<Review> reviews = new ArrayList<>(); // Khởi tạo list
+
+    // ⭐ THÊM MỚI: Liên kết OneToMany tới Payment ⭐
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @JsonManagedReference
+    private List<Payment> payments = new ArrayList<>();
+
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+        if(isDeleted == null) isDeleted = false;
+        if(isConfirmed == null) isConfirmed = false;
     }
-    
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

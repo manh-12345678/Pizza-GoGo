@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{manager/fragments/layout :: managerLayout('promotions', ~{::content})}">
+<body>
+<div th:fragment="content">
+    <div th:replace="~{manager/fragments/layout :: managerHead('Quản lý khuyến mãi', ~{manager/fragments/layout :: emptyScripts})}"></div>
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="manager-page-title">Quản lý khuyến mãi</h1>
+        <div class="d-flex gap-2">
+            <a th:href="@{/manager/promotions/add}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Thêm promotion
+            </a>
+            <a th:href="@{/manager/promotions/redemptions}" class="btn btn-primary">
+                <i class="bi bi-list-check"></i> Xem yêu cầu đổi quà
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5>Danh sách promotion</h5>
+        </div>
+        <div class="card-body">
+            <div th:if="${#lists.isEmpty(promotions)}" class="text-center text-muted">
+                Chưa có promotion nào.
+            </div>
+            <div th:unless="${#lists.isEmpty(promotions)}" class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên</th>
+                            <th>Loại</th>
+                            <th>Điểm yêu cầu</th>
+                            <th>Số lượng</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="promotion : ${promotions}">
+                            <td th:text="${promotion.promotionId}"></td>
+                            <td th:text="${promotion.name}"></td>
+                            <td>
+                                <span th:if="${promotion.type == 'VOUCHER'}" class="badge bg-info">Voucher</span>
+                                <span th:if="${promotion.type == 'GIFT'}" class="badge bg-warning">Quà tặng</span>
+                                <span th:if="${promotion.type == 'PRODUCT'}" class="badge bg-success">Tặng món</span>
+                                <span th:if="${promotion.type == 'DISCOUNT'}" class="badge bg-secondary">Giảm giá</span>
+                            </td>
+                            <td th:text="${promotion.pointsRequired}"></td>
+                            <td>
+                                <span th:if="${promotion.stockQuantity != null}" th:text="${promotion.stockQuantity}"></span>
+                                <span th:unless="${promotion.stockQuantity != null}" class="text-muted">Không giới hạn</span>
+                            </td>
+                            <td>
+                                <span th:if="${promotion.isActive}" class="badge bg-success">Hoạt động</span>
+                                <span th:unless="${promotion.isActive}" class="badge bg-secondary">Tạm dừng</span>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a th:href="@{/manager/promotions/edit/{id}(id=${promotion.promotionId})}" 
+                                       class="btn btn-sm btn-warning" title="Sửa">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form th:action="@{/manager/promotions/delete/{id}(id=${promotion.promotionId})}" 
+                                          method="post" 
+                                          style="display: inline;"
+                                          onsubmit="return confirm('Bạn có chắc muốn xóa promotion này?');">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="~{manager/fragments/layout :: managerScripts(~{manager/fragments/layout :: emptyScripts})}"></div>
+</body>
+</html>
+

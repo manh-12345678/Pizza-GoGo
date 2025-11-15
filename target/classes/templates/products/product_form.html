@@ -1,0 +1,189 @@
+<!-- File: products/product_form.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${isEdit ? 'Chỉnh sửa Sản phẩm' : 'Thêm Sản phẩm'}">Product Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { padding: 20px; background-color: #f8f9fa; }
+        .card { margin-bottom: 20px; }
+        .form-label { font-weight: 500; }
+        .required::after { content: " *"; color: red; }
+        /* Style cho dòng NVL động */
+        .ingredient-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .ingredient-row .form-select { flex: 3; }
+        .ingredient-row .form-control { flex: 2; }
+        .ingredient-row .btn { flex-shrink: 0; }
+
+        /* ❗ THÊM: Style cho ô chọn Topping */
+        .topping-checkbox-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2 class="mb-4">
+        <i class="bi bi-basket"></i>
+        <span th:text="${isEdit ? 'Chỉnh sửa Sản phẩm' : 'Thêm Sản phẩm Mới'}"></span>
+    </h2>
+
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form th:action="${isEdit ? '/products/edit/' + productDTO.productId : '/products/add'}"
+                  th:object="${productDTO}" method="post">
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="name" class="form-label required">Tên Sản phẩm</label>
+                        <input type="text" class="form-control" id="name" th:field="*{name}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="categoryId" class="form-label required">Loại sản phẩm</label>
+                        <select class="form-select" id="categoryId" th:field="*{categoryId}" required>
+                            <option value="">-- Chọn loại --</option>
+                            <option th:each="cat : ${allCategories}"
+                                    th:value="${cat.categoryId}"
+                                    th:text="${cat.categoryName}"></option> </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="price" class="form-label required">Giá (VNĐ)</label>
+                        <input type="number" step="1000" class="form-control" id="price" th:field="*{price}" required min="0">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="quantityPerDay" class="form-label required">Tồn kho / Ngày</label>
+                        <input type="number" class="form-control" id="quantityPerDay" th:field="*{quantityPerDay}" required min="0">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="imgUrl" class="form-label">Link Ảnh</label>
+                        <input type="text" class="form-control" id="imgUrl" th:field="*{imgUrl}" placeholder="https://...">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Mô tả</label>
+                    <textarea class="form-control" id="description" th:field="*{description}" rows="3"></textarea>
+                </div>
+
+                <hr>
+
+                <h5>Nguyên vật liệu sử dụng (Để tạo ra sản phẩm)</h5>
+
+                <div id="ingredient-list-container">
+                    <div th:each="ing, iterStat : *{ingredients}" class="ingredient-row">
+                        <select class="form-select" th:name="|ingredients[${iterStat.index}].ingredientId|">
+                            <option value="">-- Chọn NVL --</option>
+                            <option th:each="opt : ${allIngredients}"
+                                    th:value="${opt.ingredientId}"
+                                    th:text="${opt.name + ' (' + opt.unit + ')'}"
+                                    th:selected="${opt.ingredientId == ing.ingredientId}"></option>
+                        </select>
+                        <input type="number" step="0.01" class="form-control" placeholder="Số lượng"
+                               th:name="|ingredients[${iterStat.index}].quantityUsed|"
+                               th:value="${ing.quantityUsed}" min="0">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeIngredientRow(this)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="button" id="add-ingredient-btn" class="btn btn-outline-success btn-sm mt-2">
+                    <i class="bi bi-plus-circle"></i> Thêm Nguyên vật liệu
+                </button>
+
+                <template id="ingredient-row-template">
+                    <div class="ingredient-row">
+                        <select class="form-select" name="ingredients[0].ingredientId">
+                            <option value="">-- Chọn NVL --</option>
+                            <option th:each="opt : ${allIngredients}"
+                                    th:value="${opt.ingredientId}"
+                                    th:text="${opt.name + ' (' + opt.unit + ')'}"></option>
+                        </select>
+                        <input type="number" step="0.01" class="form-control" name="ingredients[0].quantityUsed" placeholder="Số lượng" min="0">
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeIngredientRow(this)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </template>
+
+                <hr>
+
+                <h5>Topping tùy chọn (Dành cho sản phẩm này)</h5>
+                <div class="mb-3">
+                    <div class="topping-checkbox-list">
+                        <div class="form-check" th:each="topping : ${allToppings}">
+                            <input class="form-check-input" type="checkbox"
+                                   th:value="${topping.toppingId}"
+                                   th:field="*{toppingIds}"
+                                   th:id="|topping-${topping.toppingId}|">
+                            <label class="form-check-label" th:for="|topping-${topping.toppingId}|"
+                                   th:text="${topping.name + ' (' + #numbers.formatDecimal(topping.price, 0, 'COMMA', 0, 'POINT') + ' VNĐ)'}">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between mt-4">
+                    <a th:href="@{/manager/products/manage}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Hủy
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i>
+                        <span th:text="${isEdit ? 'Cập nhật' : 'Thêm Sản phẩm'}"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:inline="javascript">
+    // ❗ FIX: Thêm hàm renumber để fix binding index khi remove/add
+    function renumberIngredientRows() {
+        const rows = document.querySelectorAll('#ingredient-list-container .ingredient-row');
+        rows.forEach((row, index) => {
+            row.querySelector('select').name = `ingredients[${index}].ingredientId`;
+            row.querySelector('input[type="number"]').name = `ingredients[${index}].quantityUsed`;
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const container = document.getElementById('ingredient-list-container');
+        const template = document.getElementById('ingredient-row-template');
+        let ingredientIndex = container.querySelectorAll('.ingredient-row').length; // ❗ Giữ nguyên
+
+        document.getElementById('add-ingredient-btn').addEventListener('click', function() {
+            const clone = template.content.cloneNode(true);
+            const newRow = clone.querySelector('.ingredient-row');
+            // ❗ FIX: Không set name cứng, sẽ renumber sau
+            newRow.querySelector('select').name = `ingredients[${ingredientIndex}].ingredientId`;
+            newRow.querySelector('input').name = `ingredients[${ingredientIndex}].quantityUsed`;
+            container.appendChild(newRow);
+            ingredientIndex++; // Tăng cho lần sau
+            renumberIngredientRows(); // ❗ THÊM: Renumber sau add
+        });
+    });
+
+    // ❗ FIX: Gọi renumber sau remove
+    function removeIngredientRow(button) {
+        button.closest('.ingredient-row').remove();
+        renumberIngredientRows(); // ❗ THÊM: Renumber sau remove
+    }
+</script>
+</body>
+</html>

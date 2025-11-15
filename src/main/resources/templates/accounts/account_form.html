@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${isEdit ? 'Chỉnh sửa Tài khoản' : 'Thêm Tài khoản'}">Account Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { padding: 20px; background-color: #f8f9fa; }
+        .card { margin-bottom: 20px; }
+        .form-label { font-weight: 500; }
+        .required::after { content: " *"; color: red; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2 class="mb-4">
+        <i class="bi bi-person-plus"></i>
+        <span th:text="${isEdit ? 'Chỉnh sửa Tài khoản' : 'Thêm Tài khoản Mới'}"></span>
+    </h2>
+
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form th:action="${isEdit ? '/accounts/edit/' + accountDTO.userId : '/accounts/add'}"
+                  th:object="${accountDTO}" method="post">
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="username" class="form-label required">Username</label>
+                        <input type="text" class="form-control" id="username" th:field="*{username}" required>
+                    </div>
+
+                    <div class="col-md-6 mb-3" th:if="${!isEdit}">
+                        <label for="password" class="form-label required">Password</label>
+                        <input type="password" class="form-control" id="password" th:field="*{password}"
+                               th:required="${!isEdit}">
+                    </div>
+                    <input type="hidden" th:if="${isEdit}" th:field="*{userId}" />
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="fullName" class="form-label">Họ và Tên</label>
+                        <input type="text" class="form-control" id="fullName" th:field="*{fullName}">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="email" class="form-label required">Email</label>
+                        <input type="email" class="form-control" id="email" th:field="*{email}" required>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="roleId" class="form-label required">Vai trò (Role)</label>
+                        <select class="form-select" id="roleId" th:field="*{roleId}" required>
+                            <option value="">-- Chọn vai trò --</option>
+                            <option th:each="role : ${allRoles}"
+                                    th:value="${role.roleId}"
+                                    th:text="${role.roleName}"></option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4 mb-3 d-flex align-items-center">
+                        <div class="form-check form-switch mt-4">
+                            <input class="form-check-input" type="checkbox" id="isConfirmed" th:field="*{isConfirmed}">
+                            <label class="form-check-label" for="isConfirmed">Đã xác thực (Confirmed)</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-3 d-flex align-items-center" th:if="${isEdit}">
+                        <div class="form-check form-switch mt-4">
+                            <input class="form-check-input" type="checkbox" id="isDeleted" th:field="*{isDeleted}">
+                            <label class="form-check-label" for="isDeleted">Vô hiệu hóa (Deleted)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a th:href="@{/manager/accounts/manage}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Hủy
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i>
+                        <span th:text="${isEdit ? 'Cập nhật' : 'Thêm Tài khoản'}"></span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

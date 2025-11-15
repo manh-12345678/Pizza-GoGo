@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{manager/fragments/layout :: managerHead('Bảng điều khiển quản lý', ~{::extraHead})}">
+    <th:block th:fragment="extraHead">
+        <style>
+            .summary-icon.gradient-primary {
+                background: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+            }
+            .summary-icon.gradient-success {
+                background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            }
+            .summary-icon.gradient-warning {
+                background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            }
+            .summary-icon.gradient-info {
+                background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+<div th:replace="~{manager/fragments/layout :: managerLayout('dashboard', ~{::pageContent})}">
+    <div th:fragment="pageContent">
+        <div class="container-fluid px-0">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center mb-4 gap-3">
+                <div>
+                    <h2 class="fw-bold mb-1">Xin chào, quản lý!</h2>
+                    <p class="text-muted mb-0">Theo dõi hoạt động kinh doanh và số liệu chính của cửa hàng.</p>
+                </div>
+                <div class="text-lg-end">
+                    <span class="badge text-bg-primary px-3 py-2">
+                        <i class="bi bi-calendar-week"></i>
+                        <span class="ms-2" th:text="${#temporals.format(T(java.time.LocalDate).now(), 'dd/MM/yyyy')}">01/01/2025</span>
+                    </span>
+                    <div class="mt-2 text-muted small">
+                        Cập nhật lúc
+                        <span th:text="${#temporals.format(T(java.time.LocalTime).now(), 'HH:mm')}">00:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="card summary-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted text-uppercase fw-semibold mb-2">Tổng đơn hàng</p>
+                                    <h3 class="fw-bold mb-0" th:text="${summary != null ? summary.totalOrders : 0}">0</h3>
+                                </div>
+                                <div class="summary-icon gradient-primary">
+                                    <i class="bi bi-receipt"></i>
+                                </div>
+                            </div>
+                            <div class="trend text-success mt-3">
+                                <i class="bi bi-arrow-up-right"></i>
+                                <span th:text="'Đơn mới hôm nay: ' + ${summary != null ? summary.todayOrders : 0}">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="card summary-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted text-uppercase fw-semibold mb-2">Doanh thu</p>
+                                    <h3 class="fw-bold mb-0"
+                                        th:text="${#numbers.formatDecimal(summary != null ? summary.totalRevenue : 0, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</h3>
+                                </div>
+                                <div class="summary-icon gradient-success">
+                                    <i class="bi bi-cash-stack"></i>
+                                </div>
+                            </div>
+                            <div class="trend text-muted mt-3">
+                                Hôm nay:
+                                <span class="fw-semibold text-success"
+                                      th:text="${#numbers.formatDecimal(summary != null ? summary.revenueToday : 0, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="card summary-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted text-uppercase fw-semibold mb-2">Thanh toán</p>
+                                    <h3 class="fw-bold mb-0" th:text="${summary != null ? summary.totalPayments : 0}">0</h3>
+                                </div>
+                                <div class="summary-icon gradient-warning">
+                                    <i class="bi bi-credit-card-2-front"></i>
+                                </div>
+                            </div>
+                            <div class="trend text-warning mt-3">
+                                Đang chờ duyệt:
+                                <span class="fw-semibold" th:text="${summary != null ? summary.pendingPayments : 0}">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="card summary-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted text-uppercase fw-semibold mb-2">Nhân sự & Khách</p>
+                                    <h3 class="fw-bold mb-0" th:text="${summary != null ? summary.totalAccounts : 0}">0</h3>
+                                </div>
+                                <div class="summary-icon gradient-info">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                            </div>
+                            <div class="trend text-muted mt-3">
+                                Nhân viên:
+                                <span class="fw-semibold text-primary" th:text="${summary != null ? summary.staffCount : 0}">0</span>
+                                <span class="mx-1">•</span>
+                                Khách:
+                                <span class="fw-semibold text-secondary" th:text="${summary != null ? summary.customerCount : 0}">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-xl-5">
+                    <div class="mini-stat h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Tình trạng đơn hàng</h5>
+                            <span class="badge text-bg-light">Tổng: <span th:text="${summary != null ? summary.totalOrders : 0}">0</span></span>
+                        </div>
+                        <div th:each="entry : ${orderStatusDistribution != null ? orderStatusDistribution : {}}" class="mb-3">
+                            <div class="d-flex justify-content-between mb-1 small text-muted">
+                                <span th:text="${entry.key}">STATUS</span>
+                                <span th:text="${entry.value}">0</span>
+                            </div>
+                            <div class="progress progress-soft">
+                                <div class="progress-bar"
+                                     th:classappend="${#strings.equalsIgnoreCase(entry.key, 'PENDING') ? ' bg-warning' :
+                                                     (#strings.equalsIgnoreCase(entry.key, 'PROCESSING') ? ' bg-info' :
+                                                     (#strings.equalsIgnoreCase(entry.key, 'COMPLETED') ? ' bg-success' : ' bg-danger'))}"
+                                     role="progressbar"
+                                     th:style="|width:${(summary != null and summary.totalOrders != 0) ? (entry.value * 100.0 / summary.totalOrders) : 0}%|"
+                                     th:aria-valuenow="${entry.value}"
+                                     aria-valuemin="0"
+                                     th:aria-valuemax="${summary != null ? summary.totalOrders : 0}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-xl-4">
+                    <div class="mini-stat h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Trạng thái thanh toán</h5>
+                            <span class="badge text-bg-light">Tổng: <span th:text="${summary != null ? summary.totalPayments : 0}">0</span></span>
+                        </div>
+                        <div th:each="entry : ${paymentStatusDistribution != null ? paymentStatusDistribution : {}}" class="mb-3">
+                            <div class="d-flex justify-content-between mb-1 small text-muted">
+                                <span th:text="${entry.key}">STATUS</span>
+                                <span th:text="${entry.value}">0</span>
+                            </div>
+                            <div class="progress progress-soft">
+                                <div class="progress-bar"
+                                     th:classappend="${#strings.equalsIgnoreCase(entry.key, 'PENDING') ? ' bg-warning' :
+                                                     (#strings.equalsIgnoreCase(entry.key, 'COMPLETED') ? ' bg-success' :
+                                                     (#strings.equalsIgnoreCase(entry.key, 'FAILED') ? ' bg-danger' : ' bg-secondary'))}"
+                                     role="progressbar"
+                                     th:style="|width:${(summary != null and summary.totalPayments != 0) ? (entry.value * 100.0 / summary.totalPayments) : 0}%|"
+                                     th:aria-valuenow="${entry.value}"
+                                     aria-valuemin="0"
+                                     th:aria-valuemax="${summary != null ? summary.totalPayments : 0}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-xl-3">
+                    <div class="mini-stat h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Tình trạng bàn</h5>
+                            <span class="badge text-bg-light">Tổng: <span th:text="${summary != null ? summary.totalTables : 0}">0</span></span>
+                        </div>
+                        <ul class="list-unstyled mb-0">
+                            <li class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="status-chip completed">Có sẵn</span>
+                                <span class="fw-semibold" th:text="${summary != null ? summary.availableTables : 0}">0</span>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="status-chip processing">Đang phục vụ</span>
+                                <span class="fw-semibold" th:text="${summary != null ? summary.occupiedTables : 0}">0</span>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center">
+                                <span class="status-chip pending">Đã đặt trước</span>
+                                <span class="fw-semibold" th:text="${summary != null ? summary.reservedTables : 0}">0</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-xl-6">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Đơn hàng gần đây</h5>
+                            <span class="badge text-bg-primary" th:text="'Hiển thị ' + ${#lists.size(recentOrders != null ? recentOrders : {})} + ' đơn'">0</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-dashboard">
+                                <div class="list-group-item" th:each="order : ${recentOrders != null ? recentOrders : {}}">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">Đơn #<span th:text="${order.orderId}">0</span></h6>
+                                            <div class="text-muted small">
+                                                <i class="bi bi-table"></i>
+                                                <span th:text="${order.displayTableName}">Bàn</span>
+                                                <span class="mx-1">•</span>
+                                                <i class="bi bi-clock"></i>
+                                                <span th:text="${order.formattedCreatedAt}">--/--</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="status-chip"
+                                                  th:classappend="${#strings.equalsIgnoreCase(order.status, 'PENDING') ? ' pending' :
+                                                                   (#strings.equalsIgnoreCase(order.status, 'PROCESSING') ? ' processing' :
+                                                                   (#strings.equalsIgnoreCase(order.status, 'COMPLETED') ? ' completed' : ' cancelled'))}"
+                                                  th:text="${order.status}">STATUS</span>
+                                            <div class="fw-semibold mt-2 text-primary" th:text="${order.formattedTotalAmount}">0 ₫</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-center text-muted py-4" th:if="${recentOrders == null || #lists.isEmpty(recentOrders)}">
+                                    <i class="bi bi-inbox"></i>
+                                    <span class="ms-2">Chưa có đơn hàng nào.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-xl-6">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Thanh toán gần đây</h5>
+                            <span class="badge text-bg-primary" th:text="'Hiển thị ' + ${#lists.size(recentPayments != null ? recentPayments : {})} + ' giao dịch'">0</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-dashboard">
+                                <div class="list-group-item" th:each="payment : ${recentPayments != null ? recentPayments : {}}">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">Thanh toán #<span th:text="${payment.paymentId}">0</span></h6>
+                                            <div class="text-muted small">
+                                                <i class="bi bi-receipt-cutoff"></i>
+                                                Đơn #<span th:text="${payment.orderId}">0</span>
+                                                <span class="mx-1">•</span>
+                                                <span th:text="${payment.paymentMethod}">COD</span>
+                                                <span class="mx-1">•</span>
+                                                <span th:text="${payment.formattedCreatedAt}">--/--</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="status-chip"
+                                                  th:classappend="${#strings.equalsIgnoreCase(payment.status, 'COMPLETED') ? ' completed' :
+                                                                   (#strings.equalsIgnoreCase(payment.status, 'PENDING') ? ' pending' :
+                                                                   (#strings.equalsIgnoreCase(payment.status, 'FAILED') ? ' cancelled' : ' processing'))}"
+                                                  th:text="${payment.status}">STATUS</span>
+                                            <div class="fw-semibold mt-2 text-success" th:text="${payment.formattedAmount}">0 ₫</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-center text-muted py-4" th:if="${recentPayments == null || #lists.isEmpty(recentPayments)}">
+                                    <i class="bi bi-wallet2"></i>
+                                    <span class="ms-2">Chưa có giao dịch nào.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12 col-xl-5">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Đơn hàng 7 ngày gần nhất</h5>
+                            <span class="badge text-bg-light text-uppercase">Daily</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex flex-wrap gap-2">
+                                <div th:each="entry : ${ordersLast7Days != null ? ordersLast7Days : {}}" class="badge rounded-pill text-bg-light px-3 py-2">
+                                    <span class="fw-semibold" th:text="${entry.key}">01/01</span>
+                                    <span class="ms-2 text-primary fw-bold" th:text="${entry.value}">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-xl-7">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Ghi chú nhanh</h5>
+                            <span class="badge text-bg-secondary">Thông tin hệ thống</span>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-unstyled mb-0">
+                                <li class="d-flex align-items-start gap-3 mb-3">
+                                    <span class="badge text-bg-primary rounded-circle p-2"><i class="bi bi-bell"></i></span>
+                                    <div>
+                                        <h6 class="mb-1">Đơn hàng đang xử lý</h6>
+                                        <p class="mb-0 text-muted">
+                                            Có <span class="fw-semibold" th:text="${summary != null ? summary.processingOrders : 0}">0</span> đơn đang chế biến.
+                                            Theo dõi sát để đảm bảo tiến độ phục vụ.
+                                        </p>
+                                    </div>
+                                </li>
+                                <li class="d-flex align-items-start gap-3 mb-3">
+                                    <span class="badge text-bg-success rounded-circle p-2"><i class="bi bi-check2-circle"></i></span>
+                                    <div>
+                                        <h6 class="mb-1">Đơn hoàn thành hôm nay</h6>
+                                        <p class="mb-0 text-muted">
+                                            <span class="fw-semibold" th:text="${summary != null ? summary.completedOrders : 0}">0</span> đơn đã hoàn tất.
+                                            Tiếp tục duy trì chất lượng phục vụ tốt cho khách hàng.
+                                        </p>
+                                    </div>
+                                </li>
+                                <li class="d-flex align-items-start gap-3">
+                                    <span class="badge text-bg-warning rounded-circle p-2"><i class="bi bi-exclamation-triangle"></i></span>
+                                    <div>
+                                        <h6 class="mb-1">Thanh toán cần duyệt</h6>
+                                        <p class="mb-0 text-muted">
+                                            Hiện có <span class="fw-semibold" th:text="${summary != null ? summary.pendingPayments : 0}">0</span> giao dịch COD cần trách nhiệm duyệt.
+                                            Hãy xử lý kịp thời để cập nhật trạng thái đơn hàng.
+                                        </p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{manager/fragments/layout :: managerScripts(~{manager/fragments/layout :: emptyScripts})}"></th:block>
+</body>
+</html>
+
