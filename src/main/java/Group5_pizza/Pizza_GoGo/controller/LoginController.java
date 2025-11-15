@@ -1,6 +1,7 @@
 package Group5_pizza.Pizza_GoGo.controller;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,7 +13,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import Group5_pizza.Pizza_GoGo.model.Account;
 import Group5_pizza.Pizza_GoGo.service.AccountService;
 import Group5_pizza.Pizza_GoGo.service.GoogleOAuthService;
-import Group5_pizza.Pizza_GoGo.service.MailService;
+import Group5_pizza.Pizza_GoGo.service.TokenCacheService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
@@ -22,7 +25,7 @@ public class LoginController {
 
     private final AccountService accountService;
     private final GoogleOAuthService googleOAuthService;
-    private final MailService mailService;
+    private final TokenCacheService tokenCacheService;
 
     // =================== LOGIN ===================
 
@@ -42,7 +45,9 @@ public class LoginController {
     @PostMapping("/login")
     public String login(@RequestParam String username,
                         @RequestParam String password,
+                        @RequestParam(value = "rememberMe", required = false) String rememberMe,
                         HttpSession session,
+                        HttpServletResponse response,
                         RedirectAttributes redirectAttributes) {
         Account account = accountService.login(username, password);
         if (account == null) {
@@ -51,13 +56,31 @@ public class LoginController {
         }
 
         session.setAttribute("loggedInUser", account);
-        String role = account.getRole().getRoleName();
-        switch (role.toUpperCase()) {
+        // Lưu role vào session với uppercase (ADMIN, STAFF, CUSTOMER)
+        String roleName = account.getRole() != null ? account.getRole().getRoleName().toUpperCase() : "";
+        session.setAttribute("loggedInUserRole", roleName);
+        
+        // Xử lý Remember Me
+        if ("on".equals(rememberMe) || "true".equals(rememberMe)) {
+            String token = UUID.randomUUID().toString();
+            tokenCacheService.saveRememberMeToken(token, account.getUsername() != null ? account.getUsername() : username);
+            
+            // Tạo cookie với thời hạn 30 ngày
+            Cookie cookie = new Cookie("rememberMe", token);
+            cookie.setMaxAge(30 * 24 * 60 * 60); // 30 ngày
+            cookie.setPath("/");
+            cookie.setHttpOnly(true); // Bảo mật hơn, JavaScript không thể truy cập
+            response.addCookie(cookie);
+        }
+        
+        // Kiểm tra role để redirect (chỉ có 3 role: ADMIN, STAFF, CUSTOMER)
+        String role = roleName;
+        switch (role) {
             case "ADMIN":
-                return "redirect:/admin/dashboard";
             case "STAFF":
-                return "redirect:/staff/dashboard";
-            default: // CUSTOMER
+                return "redirect:/manager/dashboard";
+            case "CUSTOMER":
+            default:
                 return "redirect:/homepage";
         }
     }
@@ -70,7 +93,10 @@ public class LoginController {
     }
 
     @GetMapping("/login/oauth2/code/google")
-    public String googleCallback(@RequestParam("code") String code, HttpSession session, RedirectAttributes redirectAttributes) {
+    public String googleCallback(@RequestParam("code") String code, 
+                                HttpSession session, 
+                                jakarta.servlet.http.HttpServletResponse response,
+                                RedirectAttributes redirectAttributes) {
         try {
             String accessToken = googleOAuthService.getAccessToken(code);
             Map<String, Object> userInfo = googleOAuthService.getUserInfo(accessToken);
@@ -91,6 +117,22 @@ public class LoginController {
 
             // Lưu thông tin vào session và chuyển hướng
             session.setAttribute("loggedInUser", account);
+            // Lưu role vào session với uppercase (ADMIN, STAFF, CUSTOMER)
+            String roleName = account.getRole() != null ? account.getRole().getRoleName().toUpperCase() : "";
+            session.setAttribute("loggedInUserRole", roleName);
+            
+            // Tự động lưu Remember Me cho đăng nhập Google
+            String token = UUID.randomUUID().toString();
+            String username = account.getUsername() != null ? account.getUsername() : email;
+            tokenCacheService.saveRememberMeToken(token, username);
+            
+            // Tạo cookie với thời hạn 30 ngày
+            Cookie cookie = new Cookie("rememberMe", token);
+            cookie.setMaxAge(30 * 24 * 60 * 60); // 30 ngày
+            cookie.setPath("/");
+            cookie.setHttpOnly(true); // Bảo mật hơn, JavaScript không thể truy cập
+            response.addCookie(cookie);
+            
             return "redirect:/homepage";
 
         } catch (Exception e) {
@@ -165,7 +207,26 @@ public class LoginController {
     // =================== LOGOUT ===================
 
     @GetMapping("/logout")
-    public String logout(HttpSession session) {
+    public String logout(HttpSession session, jakarta.servlet.http.HttpServletRequest request, 
+                         jakarta.servlet.http.HttpServletResponse response) {
+        // Xóa Remember Me cookie nếu có
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("rememberMe".equals(cookie.getName()) && cookie.getValue() != null) {
+                    // Xóa token khỏi Redis
+                    tokenCacheService.deleteRememberMeToken(cookie.getValue());
+                    
+                    // Xóa cookie
+                    Cookie deleteCookie = new Cookie("rememberMe", "");
+                    deleteCookie.setMaxAge(0);
+                    deleteCookie.setPath("/");
+                    response.addCookie(deleteCookie);
+                    break;
+                }
+            }
+        }
+        
         session.invalidate(); // Xóa toàn bộ session
         return "redirect:/";
     }

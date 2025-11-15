@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Đơn hàng của tôi | Pizza GoGo</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" rel="stylesheet"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .order-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background: #fff;
+            transition: box-shadow 0.2s;
+        }
+        .order-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-processing { background: #d1ecf1; color: #0c5460; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/homepage}">
+                <span class="flaticon-pizza-1 mr-1"></span>Pizza<br/><small>Delicious</small>
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav">
+                <span class="oi oi-menu"></span> Menu
+            </button>
+            <div class="collapse navbar-collapse" id="ftco-nav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item"><a th:href="@{/homepage}" class="nav-link">Trang chủ</a></li>
+                    <li class="nav-item"><a th:href="@{/menu}" class="nav-link">Menu</a></li>
+                    <li class="nav-item"><a th:href="@{/promotions}" class="nav-link">Khuyến mãi</a></li>
+                    <li class="nav-item active"><a th:href="@{/orders/my-orders}" class="nav-link">Đơn hàng của tôi</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section class="ftco-section">
+        <div class="container">
+            <div class="row justify-content-center mb-5 pb-3">
+                <div class="col-md-7 heading-section text-center ftco-animate">
+                    <h2 class="mb-4">Đơn hàng của tôi</h2>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(orders)}" class="alert alert-info text-center">
+                <i class="bi bi-inbox"></i> Bạn chưa có đơn hàng nào.
+                <br>
+                <a th:href="@{/menu}" class="btn btn-primary mt-3">Đặt hàng ngay</a>
+            </div>
+
+            <div th:unless="${#lists.isEmpty(orders)}">
+                <div class="order-card" th:each="order : ${orders}">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5 class="mb-3">
+                                <i class="bi bi-receipt"></i> Đơn hàng #<span th:text="${order.orderId}"></span>
+                            </h5>
+                            <div class="mb-2">
+                                <strong>Loại đơn:</strong>
+                                <span th:if="${order.orderType == 'DINE_IN'}" class="badge bg-info">
+                                    <i class="bi bi-shop"></i> Ăn tại quán
+                                </span>
+                                <span th:if="${order.orderType == 'DELIVERY'}" class="badge bg-warning">
+                                    <i class="bi bi-truck"></i> Giao hàng
+                                </span>
+                                <span th:if="${order.orderType == 'ONLINE'}" class="badge bg-primary">
+                                    <i class="bi bi-cart"></i> Online
+                                </span>
+                            </div>
+                            <div class="mb-2">
+                                <strong>Trạng thái:</strong>
+                                <span th:if="${order.status == 'PENDING'}" class="status-badge status-pending">Chờ xử lý</span>
+                                <span th:if="${order.status == 'PROCESSING'}" class="status-badge status-processing">Đang xử lý</span>
+                                <span th:if="${order.status == 'COMPLETED'}" class="status-badge status-completed">Hoàn thành</span>
+                                <span th:if="${order.status == 'CANCELLED'}" class="status-badge status-cancelled">Đã hủy</span>
+                            </div>
+                            <div class="mb-2">
+                                <strong>Tổng tiền:</strong>
+                                <span class="text-success fw-bold h5" 
+                                      th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></span>
+                            </div>
+                            <div class="mb-2">
+                                <strong>Ngày đặt:</strong>
+                                <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="d-flex flex-column gap-2">
+                                <a th:href="@{/orders/{id}(id=${order.orderId})}" class="btn btn-primary">
+                                    <i class="bi bi-eye"></i> Xem chi tiết
+                                </a>
+                                <a th:if="${order.status == 'COMPLETED'}" 
+                                   th:href="@{/reviews/order/{id}/new(id=${order.orderId})}" 
+                                   class="btn btn-warning btn-sm">
+                                    <i class="bi bi-star-fill"></i> Đánh giá
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="ftco-footer ftco-section img">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row mb-5">
+                <div class="col-lg-3 col-md-6 mb-5 mb-md-5">
+                    <div class="ftco-footer-widget mb-4">
+                        <h2 class="ftco-heading-2">About Us</h2>
+                        <p>Pizza GoGo - Nơi hội tụ hương vị tuyệt vời</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

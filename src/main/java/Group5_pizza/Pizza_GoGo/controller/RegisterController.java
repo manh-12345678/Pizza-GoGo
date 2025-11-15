@@ -1,127 +1,122 @@
 package Group5_pizza.Pizza_GoGo.controller;
 
 import Group5_pizza.Pizza_GoGo.model.Account;
-import Group5_pizza.Pizza_GoGo.model.Role;
 import Group5_pizza.Pizza_GoGo.service.AccountService;
 import Group5_pizza.Pizza_GoGo.service.MailService;
-import Group5_pizza.Pizza_GoGo.repository.RoleRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import Group5_pizza.Pizza_GoGo.service.TokenCacheService;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 @Controller
+@RequiredArgsConstructor
 public class RegisterController {
 
-    @Autowired
-    private AccountService accountService;
-
-    @Autowired
-    private MailService mailService;
-
-    @Autowired
-    private RoleRepository roleRepository;
+    private final AccountService accountService;
+    private final MailService mailService;
+    private final TokenCacheService tokenCacheService;
 
     @GetMapping("/register")
-    public String showRegisterPage() {
+    public String showRegistrationForm() {
         return "Register/register";
     }
 
     @PostMapping("/register")
-    public String registerUser(
-            @RequestParam("fullName") String fullName,
-            @RequestParam("username") String username,
-            @RequestParam("email") String email,
-            @RequestParam("password") String password,
-            @RequestParam("confirmPassword") String confirmPassword,
-            Model model
-    ) {
+    public String processRegistration(@RequestParam String username,
+                                      @RequestParam String email,
+                                      @RequestParam String password,
+                                      @RequestParam String confirmPassword,
+                                      HttpServletRequest request,
+                                      RedirectAttributes redirectAttributes) {
+
+        if (!password.equals(confirmPassword)) {
+            redirectAttributes.addFlashAttribute("error", "Mật khẩu không khớp!");
+            return "redirect:/register";
+        }
+        if (accountService.existsByUsername(username)) {
+            redirectAttributes.addFlashAttribute("error", "Username đã tồn tại!");
+            return "redirect:/register";
+        }
+        if (accountService.existsByEmail(email)) {
+            redirectAttributes.addFlashAttribute("error", "Email đã tồn tại!");
+            return "redirect:/register";
+        }
+
         try {
-            // Input Validation
-            if (fullName == null || fullName.trim().isEmpty()) {
-                model.addAttribute("error", "Full name is required!");
-                return "Register/register";
-            }
-            if (username == null || username.trim().isEmpty()) {
-                model.addAttribute("error", "Username is required!");
-                return "Register/register";
-            }
-            if (email == null || email.trim().isEmpty()) {
-                model.addAttribute("error", "Email is required!");
-                return "Register/register";
-            }
-            // Simple email validation
-            Pattern emailPattern = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
-            if (!emailPattern.matcher(email).matches()) {
-                model.addAttribute("error", "Invalid email format!");
-                return "Register/register";
-            }
-            if (password == null || password.length() < 6) {
-                model.addAttribute("error", "Password must be at least 6 characters!");
-                return "Register/register";
-            }
-            if (!password.equals(confirmPassword)) {
-                model.addAttribute("error", "Passwords do not match!");
-                return "Register/register";
-            }
-
-            // Business Logic Validation
-            if (accountService.existsByUsername(username)) {
-                model.addAttribute("error", "Username is already taken!");
-                return "Register/register";
-            }
-            if (accountService.existsByEmail(email)) {
-                model.addAttribute("error", "Email is already registered!");
-                return "Register/register";
-            }
-
-            // Account Creation
-            Account account = new Account();
-            account.setFullName(fullName);
-            account.setUsername(username);
-            account.setEmail(email);
-            account.setPasswordHash(password); // Service will hash this later
-
-            // Assign "CUSTOMER" role instead of "USER"
-            Role customerRole = roleRepository.findByRoleName("CUSTOMER");
-            if (customerRole == null) {
-                // This is a safeguard in case the DataSeeder hasn't run
-                model.addAttribute("error", "System error: Default role not found. Please contact support.");
-                return "Register/register";
-            }
-            account.setRole(customerRole);
-
-            accountService.register(account);
-
-            // Send Confirmation Email
+            // ✅ Không lưu DB ngay — chỉ lưu tạm thông tin đăng ký
             String token = UUID.randomUUID().toString();
-            accountService.createConfirmationToken(account, token);
-            String confirmUrl = "http://localhost:8080/confirm?token=" + token;
-            mailService.sendConfirmationLink(email, confirmUrl);
+            if (token == null || token.trim().isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Lỗi tạo token!");
+                return "redirect:/register";
+            }
 
-            model.addAttribute("success", "Registration successful! Please check your email to confirm your account.");
-            // It's better to show a confirmation message on the login page
-            return "redirect:/login?registered=true";
+            Map<String, String> pendingData = new HashMap<>();
+            pendingData.put("username", username);
+            pendingData.put("email", email);
+            pendingData.put("password", password);
+
+            tokenCacheService.savePendingAccount(token, pendingData);
+
+            // Gửi email xác nhận
+            if (email != null && !email.trim().isEmpty()) {
+                String confirmationUrl = request.getRequestURL().toString().replace(request.getServletPath(), "") + "/confirm-account?token=" + token;
+                mailService.sendConfirmationLink(email, confirmationUrl);
+            }
+
+            redirectAttributes.addFlashAttribute("success", "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.");
+            return "redirect:/login";
 
         } catch (Exception e) {
-            model.addAttribute("error", "An unexpected error occurred during registration: " + e.getMessage());
-            return "Register/register";
+            redirectAttributes.addFlashAttribute("error", "Đã xảy ra lỗi: " + e.getMessage());
+            return "redirect:/register";
         }
     }
 
-    @GetMapping("/confirm")
-    public String confirmAccount(@RequestParam("token") String token, Model model) {
-        boolean isConfirmed = accountService.confirmAccount(token);
-        if (isConfirmed) {
-            // Redirect to login page with a success message
-            return "redirect:/login?confirmed=true";
-        } else {
-            // You might want a specific error page for this
-            model.addAttribute("error", "Invalid or expired confirmation link!");
-            return "Register/register";
+    @GetMapping("/confirm-account")
+    public String confirmAccount(@RequestParam("token") String token, RedirectAttributes redirectAttributes) {
+        if (token == null || token.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Token không hợp lệ!");
+            return "redirect:/login";
+        }
+        // ✅ Lấy thông tin đăng ký tạm từ Redis
+        Map<String, String> pendingData = tokenCacheService.getPendingAccount(token);
+        if (pendingData == null) {
+            redirectAttributes.addFlashAttribute("error", "Token không hợp lệ hoặc đã hết hạn!");
+            return "redirect:/login";
+        }
+
+        try {
+            String username = pendingData.get("username");
+            String email = pendingData.get("email");
+            String password = pendingData.get("password");
+
+            if (username == null || email == null || password == null) {
+                redirectAttributes.addFlashAttribute("error", "Thông tin đăng ký không hợp lệ!");
+                return "redirect:/login";
+            }
+
+            // Tạo tài khoản thật trong DB (hash password tự động trong service)
+            Account account = accountService.registerNewCustomer(username, email, password);
+            account.setIsConfirmed(true);
+            accountService.save(account);
+
+            // Xóa thông tin tạm
+            tokenCacheService.deletePendingAccount(token);
+
+            redirectAttributes.addFlashAttribute("success", "Xác thực tài khoản thành công! Bạn có thể đăng nhập.");
+            return "redirect:/login";
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Xác thực thất bại: " + e.getMessage());
+            return "redirect:/login";
         }
     }
 }

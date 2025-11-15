@@ -1,44 +1,78 @@
+// package Group5_pizza.Pizza_GoGo.model;
+// OrderDetail.java
 package Group5_pizza.Pizza_GoGo.model;
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+// --- SỬA LỖI: Đổi import từ List/ArrayList sang Set/HashSet ---
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
-@Table(name = "OrderDetails")
+@Table(name = "order_details")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class OrderDetail {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "OrderDetailId")
+    @Column(name = "order_detail_id")
     private Integer orderDetailId;
 
-    @ManyToOne
-    @JoinColumn(name = "OrderId", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    @JsonBackReference // Ngăn vòng lặp ngược về Order
     private Order order;
 
-    @ManyToOne
-    @JoinColumn(name = "ProductId", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    @Column(name = "Quantity", nullable = false, columnDefinition = "INT DEFAULT 1")
-    private Integer quantity;
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer quantity = 1;
 
-    @Column(name = "UnitPrice", nullable = false, columnDefinition = "DECIMAL(18,2)")
+    @Column(name = "unit_price", columnDefinition = "DECIMAL(18,2)")
     private BigDecimal unitPrice;
 
-    @Column(name = "Discount", nullable = false, columnDefinition = "DECIMAL(18,2) DEFAULT 0")
-    private BigDecimal discount;
+    @Column(name = "discount", columnDefinition = "DECIMAL(18,2) DEFAULT 0.00")
+    @Builder.Default
+    private BigDecimal discount = BigDecimal.ZERO;
 
-    @Column(name = "CreatedAt", columnDefinition = "DATETIME DEFAULT GETDATE()")
+    @Column(name = "note")
+    private String note;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "UpdatedAt")
-    private LocalDateTime updatedAt;
+    @Column(name = "is_deleted", columnDefinition = "BIT DEFAULT 0")
+    @Builder.Default
+    private Boolean isDeleted = false;
 
-    @Column(name = "IsDeleted", columnDefinition = "BIT DEFAULT 0")
-    private Boolean isDeleted;
+    // --- SỬA LỖI "MultipleBagFetchException": Đổi List thành Set ---
+    @OneToMany(mappedBy = "orderDetail", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    @Builder.Default
+    private Set<OrderDetailTopping> orderDetailToppings = new HashSet<>();
+
+    // Tính thành tiền (product + topping - discount)
+    public BigDecimal getSubtotal() {
+        BigDecimal base = unitPrice.multiply(BigDecimal.valueOf(quantity)).subtract(discount);
+        BigDecimal toppingTotal = orderDetailToppings.stream()
+                .filter(t -> !Boolean.TRUE.equals(t.getIsDeleted()))
+                .map(OrderDetailTopping::getPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return base.add(toppingTotal);
+    }
+    public void addTopping(OrderDetailTopping topping) {
+        if (orderDetailToppings == null) orderDetailToppings = new HashSet<>();
+        orderDetailToppings.add(topping);
+        topping.setOrderDetail(this);
+    }
 }

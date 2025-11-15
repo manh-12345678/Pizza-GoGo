@@ -31,7 +31,7 @@ public class GoogleOAuthService {
      * URL chuyển hướng người dùng đến Google login
      */
     public String getAuthorizationUrl() {
-        return UriComponentsBuilder.fromHttpUrl(AUTH_URL)
+        return UriComponentsBuilder.fromUriString(AUTH_URL)
                 .queryParam("client_id", googleProperties.getClientId())
                 .queryParam("redirect_uri", googleProperties.getRedirectUri())
                 .queryParam("response_type", "code")

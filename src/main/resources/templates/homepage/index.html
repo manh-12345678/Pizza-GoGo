@@ -40,31 +40,35 @@
 
         <div class="collapse navbar-collapse" id="ftco-nav">
             <ul class="navbar-nav ml-auto">
-                <li class="nav-item active"><a th:href="@{/homepage}" class="nav-link">Home</a></li>
+                <li class="nav-item active"><a th:href="@{/homepage}" class="nav-link">Trang chủ</a></li>
                 <li class="nav-item"><a th:href="@{/menu}" class="nav-link">Menu</a></li>
-                <li class="nav-item"><a th:href="@{/services}" class="nav-link">Services</a></li>
-                <li class="nav-item"><a th:href="@{/blog}" class="nav-link">Blog</a></li>
-                <li class="nav-item"><a th:href="@{/about}" class="nav-link">About</a></li>
-                <li class="nav-item"><a th:href="@{/contact}" class="nav-link">Contact</a></li>
+                <li class="nav-item"><a th:href="@{/promotions}" class="nav-link">Khuyến mãi</a></li>
 
                 <th:block th:unless="${session.loggedInUser}">
                     <li class="nav-item">
-                        <a th:href="@{/login}" class="nav-link btn btn-outline-light mx-1">Login</a>
+                        <a th:href="@{/login}" class="nav-link btn btn-outline-light mx-1">Đăng nhập</a>
                     </li>
                     <li class="nav-item">
-                        <a th:href="@{/register}" class="nav-link btn btn-outline-light mx-1">Register</a>
+                        <a th:href="@{/register}" class="nav-link btn btn-outline-light mx-1">Đăng ký</a>
                     </li>
                 </th:block>
 
                 <th:block th:if="${session.loggedInUser}">
+                    <li class="nav-item">
+                        <span class="nav-link text-warning" th:if="${session.loggedInUser.customer != null}">
+                            <i class="bi bi-star-fill"></i> Điểm: <span th:text="${session.loggedInUser.customer.points ?: 0}">0</span>
+                        </span>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
                            th:text="${session.loggedInUser.fullName}">
                         </a>
                         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                            <a class="dropdown-item" th:href="@{/profile}">Profile</a>
-                            <a class="dropdown-item" th:href="@{/logout}">Logout</a>
+                            <a class="dropdown-item" th:href="@{/profile}">Hồ sơ</a>
+                            <a class="dropdown-item" th:href="@{/orders/my-orders}">Đơn hàng của tôi</a>
+                            <a class="dropdown-item" th:href="@{/promotions/my-redemptions}">Lịch sử đổi quà</a>
+                            <a class="dropdown-item" th:href="@{/logout}">Đăng xuất</a>
                         </div>
                     </li>
                 </th:block>

@@ -133,6 +133,20 @@
         .text-small a:hover {
             text-decoration: underline;
         }
+
+        .form-check-input {
+            background-color: #2c2c2c;
+            border: 1px solid #444;
+        }
+
+        .form-check-input:checked {
+            background-color: #ff7e00;
+            border-color: #ff7e00;
+        }
+
+        .form-check-label {
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -160,6 +174,16 @@
                    name="password"
                    placeholder="Enter your password"
                    required>
+        </div>
+
+        <div class="mb-3 form-check">
+            <input type="checkbox" 
+                   class="form-check-input" 
+                   id="rememberMe" 
+                   name="rememberMe">
+            <label class="form-check-label" for="rememberMe" style="color: #ccc;">
+                Ghi nhớ đăng nhập
+            </label>
         </div>
 
         <div class="d-grid mb-3">

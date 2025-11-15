@@ -1,5 +1,6 @@
 package Group5_pizza.Pizza_GoGo.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,18 +17,16 @@ public class ComboDetail {
 
     @ManyToOne
     @JoinColumn(name = "ComboId", nullable = false)
+    @ToString.Exclude
+    @JsonBackReference
     private Combo combo;
 
     @ManyToOne
     @JoinColumn(name = "ProductId", nullable = false)
+    @ToString.Exclude
+    @JsonBackReference
     private Product product;
 
     @Column(name = "Quantity", nullable = false, columnDefinition = "INT DEFAULT 1")
-    private Integer quantity;
-
-    @Column(name = "ComboId", insertable = false, updatable = false)
-    private Integer comboId;
-
-    @Column(name = "ProductId", insertable = false, updatable = false)
-    private Integer productId;
+    private Integer quantity = 1;
 }

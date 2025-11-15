@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Menu | Pizza GoGo</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css?family=Josefin+Sans" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css?family=Nothing+You+Could+Do" rel="stylesheet"/>
+
+    <link rel="stylesheet" th:href="@{/css/open-iconic-bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/animate.css}"/>
+    <link rel="stylesheet" th:href="@{/css/owl.carousel.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/owl.theme.default.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/magnific-popup.css}"/>
+    <link rel="stylesheet" th:href="@{/css/aos.css}"/>
+    <link rel="stylesheet" th:href="@{/css/ionicons.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/bootstrap-datepicker.css}"/>
+    <link rel="stylesheet" th:href="@{/css/jquery.timepicker.css}"/>
+    <link rel="stylesheet" th:href="@{/css/flaticon.css}"/>
+    <link rel="stylesheet" th:href="@{/css/icomoon.css}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <style>
+        .combo-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 12px 35px rgba(15, 23, 42, 0.12);
+            height: 100%;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .combo-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 22px 45px rgba(15, 23, 42, 0.18);
+        }
+
+        .combo-card ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 12px 0 18px;
+        }
+
+        .combo-card ul li {
+            color: #475569;
+            padding: 4px 0;
+        }
+
+        .cart-wrapper {
+            position: sticky;
+            top: 40px;
+        }
+
+        .cart-panel {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 15px 40px rgba(15, 23, 42, 0.12);
+        }
+
+        .cart-item {
+            border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+            padding: 12px 0;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .quantity-control button {
+            border: none;
+            background: rgba(226, 232, 240, 0.9);
+            color: #1e293b;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+        }
+
+        .quantity-control span {
+            min-width: 32px;
+            text-align: center;
+            display: inline-block;
+            font-weight: 600;
+        }
+
+        .voucher-form input {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            color: #1e293b !important;
+            font-weight: 500;
+        }
+
+        .voucher-form input:focus {
+            background: #ffffff;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            color: #1e293b !important;
+        }
+
+        .voucher-form input::placeholder {
+            color: #64748b !important;
+            opacity: 0.8;
+        }
+
+        .voucher-form select {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            color: #000000 !important;
+            font-weight: 500;
+            font-size: 0.875rem;
+            padding: 0.375rem 0.5rem;
+            height: auto;
+            min-height: 32px;
+        }
+
+        .voucher-form select:focus {
+            background: #ffffff;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            color: #000000 !important;
+        }
+
+        .voucher-form select option {
+            color: #000000;
+            background: #ffffff;
+        }
+
+        /* Style cho form thông tin giao hàng */
+        .form-group input.form-control {
+            background: rgba(255, 255, 255, 0.95) !important;
+            border: 1px solid rgba(148, 163, 184, 0.5) !important;
+            color: #1e293b !important;
+            font-weight: 500;
+        }
+
+        .form-group input.form-control:focus {
+            background: #ffffff !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+            color: #1e293b !important;
+        }
+
+        .form-group input.form-control::placeholder {
+            color: #64748b !important;
+            opacity: 0.8;
+        }
+
+        .form-group label {
+            color: #1e293b !important;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-cart {
+            text-align: center;
+            color: #94a3b8;
+            padding: 36px 12px;
+        }
+
+        .nav-link.active {
+            background: #ff5722 !important;
+            color: #fff !important;
+        }
+    </style>
+</head>
+
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/homepage}">
+            <span class="flaticon-pizza-1 mr-1"></span>Pizza<br/><small>Delicious</small>
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav"
+                aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="oi oi-menu"></span> Menu
+        </button>
+
+        <div class="collapse navbar-collapse" id="ftco-nav">
+            <ul class="navbar-nav ml-auto" id="navbarItems">
+                <li class="nav-item"><a th:href="@{/homepage}" class="nav-link">Trang chủ</a></li>
+                <li class="nav-item active"><a th:href="@{/menu}" class="nav-link">Menu</a></li>
+                <li class="nav-item"><a th:href="@{/promotions}" class="nav-link">Khuyến mãi</a></li>
+
+                <th:block th:unless="${session.loggedInUser}">
+                    <li class="nav-item">
+                        <a th:href="@{/login}" class="nav-link btn btn-outline-light mx-1">Đăng nhập</a>
+                    </li>
+                    <li class="nav-item">
+                        <a th:href="@{/register}" class="nav-link btn btn-outline-light mx-1">Đăng ký</a>
+                    </li>
+                </th:block>
+
+                <th:block th:if="${session.loggedInUser}">
+                    <li class="nav-item">
+                        <span class="nav-link text-warning" th:if="${session.loggedInUser.customer != null}">
+                            <i class="bi bi-star-fill"></i> Điểm: <span th:text="${session.loggedInUser.customer.points ?: 0}">0</span>
+                        </span>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"
+                           th:text="${session.loggedInUser.fullName}">
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                            <a class="dropdown-item" th:href="@{/profile}">Hồ sơ</a>
+                            <a class="dropdown-item" th:href="@{/orders/my-orders}">Đơn hàng của tôi</a>
+                            <a class="dropdown-item" th:href="@{/promotions/my-redemptions}">Lịch sử đổi quà</a>
+                            <a class="dropdown-item" th:href="@{/logout}">Đăng xuất</a>
+                        </div>
+                    </li>
+                </th:block>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<section class="home-slider owl-carousel img" style="background-image: url('/images/bg_1.jpg')">
+    <div class="slider-item">
+        <div class="overlay"></div>
+        <div class="container">
+            <div class="row slider-text align-items-center" data-scrollax-parent="true">
+                <div class="col-md-6 col-sm-12 ftco-animate">
+                    <span class="subheading">Delicious</span>
+                    <h1 class="mb-4">Thực Đơn Vẹn Tròn Hương Vị</h1>
+                    <p class="mb-4 mb-md-5">
+                        Hãy bắt đầu hành trình thưởng thức với pizza nóng hổi, combo tiết kiệm và đồ uống mát lạnh tại Pizza GoGo.
+                    </p>
+                    <p>
+                        <a href="#menu-section" class="btn btn-primary p-3 px-xl-4 py-xl-3">Khám phá thực đơn</a>
+                        <a href="#combo-section" class="btn btn-white btn-outline-white p-3 px-xl-4 py-xl-3">Ưu đãi combo</a>
+                    </p>
+                </div>
+                <div class="col-md-6 ftco-animate d-none d-md-block">
+                    <img src="/images/bg_1.png" class="img-fluid" alt="Pizza Hero">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section" id="combo-section" th:if="${#lists.isEmpty(comboViews)} == false">
+    <div class="container">
+        <div class="row justify-content-center mb-5 pb-3">
+            <div class="col-md-7 heading-section ftco-animate text-center">
+                <h2 class="mb-4">Combo Ưu Đãi</h2>
+                <p>Chọn ngay combo yêu thích để tiết kiệm hơn cho bữa ăn của bạn.</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 col-lg-4 ftco-animate" th:each="comboView : ${comboViews}">
+                <div class="combo-card d-flex flex-column h-100">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <span class="badge badge-primary py-2 px-3">
+                            <i class="icon-gift"></i> Combo Hot
+                        </span>
+                        <span class="badge badge-success py-2 px-3"
+                              th:if="${comboView.discountPercent != null && comboView.discountPercent > 0}">
+                            -<span th:text="${comboView.discountPercent.setScale(0, T(java.math.RoundingMode).HALF_UP)}"></span>%
+                        </span>
+                    </div>
+                    <h4 class="mt-3 mb-2" th:text="${comboView.combo.name}">Combo Family</h4>
+                    <ul>
+                        <li th:each="detail : ${comboView.details}">
+                            <strong th:text="${detail.quantity}">1</strong>x
+                            <span th:text="${detail.product != null ? detail.product.name : 'Sản phẩm'}">Pizza</span>
+                        </li>
+                    </ul>
+                    <p class="text-muted small" th:text="${comboView.description}"></p>
+                    <div class="mt-auto">
+                        <div class="d-flex align-items-baseline gap-2 mb-3">
+                            <span class="h4 text-warning mb-0"
+                                  th:text="${#numbers.formatDecimal(comboView.finalPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                            <small class="text-muted text-decoration-line-through"
+                                   th:if="${comboView.discountAmount != null && comboView.discountAmount > 0}"
+                                   th:text="${#numbers.formatDecimal(comboView.basePrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</small>
+                        </div>
+                        <button class="btn btn-primary btn-block"
+                                th:onclick="'addComboToCart(' + ${comboView.combo.comboId} + ')'">
+                            <i class="icon-cart"></i> Thêm combo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-menu" id="menu-section">
+    <div class="container-fluid">
+        <div class="row d-md-flex">
+            <div class="col-lg-4 ftco-animate img f-menu-img mb-5 mb-md-0"
+                 style="background-image: url('/images/about.jpg');"></div>
+            <div class="col-lg-8 ftco-animate p-md-5">
+                <div class="row">
+                    <div class="col-md-12 nav-link-wrap mb-5">
+                        <div class="nav nav-pills" id="menu-tabs" role="tablist" aria-orientation="vertical">
+                            <a class="nav-link ftco-animate"
+                               th:each="category, stat : ${menuSections}"
+                               th:id="'tab-' + ${category.slug} + '-tab'"
+                               th:href="'#tab-' + ${category.slug}"
+                               data-toggle="pill"
+                               role="tab"
+                               th:aria-controls="'tab-' + ${category.slug}"
+                               th:classappend="${stat.index == 0} ? ' active' : ''"
+                               th:aria-selected="${stat.index == 0}"
+                               th:text="${category.name}">Danh mục</a>
+                        </div>
+                    </div>
+                    <div class="col-md-12 d-flex align-items-center">
+                        <div class="tab-content ftco-animate" id="menu-tabs-content">
+                            <div class="tab-pane fade"
+                                 th:each="category, stat : ${menuSections}"
+                                 th:id="'tab-' + ${category.slug}"
+                                 role="tabpanel"
+                                 th:aria-labelledby="'tab-' + ${category.slug} + '-tab'"
+                                 th:classappend="${stat.index == 0} ? ' show active' : ''">
+                                <div class="row">
+                                    <div class="col-md-6 col-lg-4 text-center ftco-animate"
+                                         th:each="product : ${category.products}">
+                                        <div class="menu-wrap">
+                                            <div class="menu-img img mb-4">
+                                                <img th:src="${product.imgUrl != null ? product.imgUrl : '/images/pizza-1.jpg'}"
+                                                     alt="Ảnh món"
+                                                     class="img-fluid rounded"
+                                                     style="width: 100%; height: 180px; object-fit: cover;"/>
+                                            </div>
+                                            <div class="text">
+                                                <h3>
+                                                    <a th:href="@{/product/{id}(id=${product.productId})}"
+                                                       class="text-decoration-none text-white"
+                                                       th:text="${product.name}">
+                                                        Tên món
+                                                    </a>
+                                                </h3>
+                                                <p th:text="${product.description}">Mô tả ngắn</p>
+                                                <p class="price">
+                                                    <span th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                                                </p>
+                                                <p>
+                                                    <a href="javascript:void(0)" class="btn btn-white btn-outline-white"
+                                                       th:onclick="'addProductToCart(' + ${product.productId} + ')'">
+                                                        <i class="icon-cart"></i> Thêm vào giỏ
+                                                    </a>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12" th:if="${#lists.isEmpty(category.products)}">
+                                        <p class="text-center text-muted py-5">Danh mục hiện chưa có sản phẩm.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="ftco-section bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-8">
+                <div class="cart-wrapper">
+                    <div class="cart-panel" id="cart-panel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="mb-0"><i class="icon-basket"></i> Giỏ hàng</h4>
+                            <span class="badge badge-info py-2 px-3"
+                                  th:text="${cartSummary.totalQuantity} + ' món'">0 món</span>
+                        </div>
+                        <div id="cart-items">
+                            <div th:if="${#lists.isEmpty(cartSummary.items)}" class="empty-cart">
+                                <i class="icon-smile-o" style="font-size: 48px;"></i>
+                                <p class="mt-3">Giỏ hàng trống. Hãy thêm món bạn yêu thích!</p>
+                            </div>
+                            <div th:each="item : ${cartSummary.items}" class="cart-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="font-weight-bold" th:text="${item.name}">Tên món</div>
+                                        <div class="text-muted small">
+                                            Đơn giá:
+                                            <span th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                                        </div>
+                                        <div class="quantity-control mt-2 d-flex align-items-center gap-2">
+                                            <button type="button"
+                                                    th:onclick="'changeQuantity(''' + ${item.id} + ''', ' + (${item.quantity} - 1) + ')'">
+                                                <i class="icon-minus"></i>
+                                            </button>
+                                            <span th:text="${item.quantity}">1</span>
+                                            <button type="button"
+                                                    th:onclick="'changeQuantity(''' + ${item.id} + ''', ' + (${item.quantity} + 1) + ')'">
+                                                <i class="icon-plus"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-danger ml-3"
+                                                    th:onclick="'removeItem(''' + ${item.id} + ''')'">
+                                                <i class="icon-trash"></i>
+                                            </button>
+                                        </div>
+                                        <div class="small text-success mt-2"
+                                             th:if="${item.type.name() == 'COMBO'}">
+                                            <strong>Combo gồm:</strong>
+                                            <div class="pl-2" th:each="component : ${item.comboItems}">
+                                                <span th:text="${component.quantity}"></span>x
+                                                <span th:text="${component.productName}"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="text-warning font-weight-bold"
+                                             th:text="${#numbers.formatDecimal(item.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</div>
+                                        <small class="text-muted"
+                                               th:if="${item.discountPerUnit != null && item.discountPerUnit > 0}">
+                                            Tiết kiệm
+                                            <span th:text="${#numbers.formatDecimal(item.discountPerUnit.multiply(new java.math.BigDecimal(item.quantity)), 0, 'COMMA', 0, 'POINT')} + ' ₫'"></span>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="voucher-form mt-3">
+                            <div class="input-group">
+                                <select class="form-control" id="voucher-code" style="width: 100%;">
+                                    <option value="">-- Chọn voucher --</option>
+                                </select>
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="applyVoucher()">Áp dụng</button>
+                                    <button class="btn btn-outline-danger" type="button" onclick="removeVoucher()">Hủy</button>
+                                </div>
+                            </div>
+                            <div id="cart-message" class="text-info mt-2" th:text="${cartSummary.message}"></div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tạm tính</span>
+                                <strong id="cart-subtotal"
+                                        th:text="${#numbers.formatDecimal(cartSummary.subtotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 text-success"
+                                 th:classappend="${cartSummary.voucherDiscount != null && cartSummary.voucherDiscount > 0} ? '' : 'd-none'">
+                                <span>Voucher</span>
+                                <strong id="cart-discount"
+                                        th:text="'- ' + ${#numbers.formatDecimal(cartSummary.voucherDiscount, 0, 'COMMA', 0, 'POINT')} + ' ₫'">-0 ₫</strong>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="h5 mb-0">Cần thanh toán</span>
+                                <span class="h4 text-warning" id="cart-total"
+                                      th:text="${#numbers.formatDecimal(cartSummary.total, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <div class="mb-3">
+                                <h6>Loại đơn hàng</h6>
+                                <div class="form-group">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="orderType" id="orderTypeDelivery" 
+                                               value="DELIVERY" checked onchange="toggleShippingForm()">
+                                        <label class="form-check-label" for="orderTypeDelivery">
+                                            <i class="bi bi-truck"></i> Giao hàng tận nơi
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3" id="shipping-form">
+                                <h6>Thông tin giao hàng</h6>
+                                <div class="form-group">
+                                    <label>Địa chỉ giao hàng <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="shipping-address" 
+                                           placeholder="Nhập địa chỉ giao hàng">
+                                </div>
+                                <div class="form-group mt-2">
+                                    <label>Tên người nhận <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="shipping-contact-name" 
+                                           placeholder="Tên người nhận">
+                                </div>
+                                <div class="form-group mt-2">
+                                    <label>Số điện thoại <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="shipping-contact-phone" 
+                                           placeholder="Số điện thoại người nhận">
+                                </div>
+                            </div>
+                            <form method="post" action="/menu/checkout" id="checkout-form" accept-charset="UTF-8">
+                                <input type="hidden" name="paymentMethod" id="paymentMethod" value=""/>
+                                <input type="hidden" name="orderType" id="order-type-input" value="DELIVERY"/>
+                                <input type="hidden" name="shippingAddress" id="shipping-address-input" value=""/>
+                                <input type="hidden" name="shippingContactName" id="shipping-contact-name-input" value=""/>
+                                <input type="hidden" name="shippingContactPhone" id="shipping-contact-phone-input" value=""/>
+                            </form>
+                            <button class="btn btn-primary btn-block mb-2"
+                                    onclick="submitCheckout('VNPAY')">
+                                <i class="icon-credit-card"></i> Thanh toán VNPAY
+                            </button>
+                            <button class="btn btn-success btn-block"
+                                    onclick="submitCheckout('COD')">
+                                <i class="icon-wallet"></i> Thanh toán COD
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="ftco-footer ftco-section img">
+    <div class="overlay"></div>
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-3 col-md-6 mb-5 mb-md-5">
+                <div class="ftco-footer-widget mb-4">
+                    <h2 class="ftco-heading-2">About Us</h2>
+                    <p>
+                        Far far away, behind the word mountains, far from the countries
+                        Vokalia and Consonantia, there live the blind texts.
+                    </p>
+                    <ul class="ftco-footer-social list-unstyled float-md-left float-lft mt-5">
+                        <li class="ftco-animate">
+                            <a href="#"><span class="icon-twitter"></span></a>
+                        </li>
+                        <li class="ftco-animate">
+                            <a href="#"><span class="icon-facebook"></span></a>
+                        </li>
+                        <li class="ftco-animate">
+                            <a href="#"><span class="icon-instagram"></span></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 mb-5 mb-md-5">
+                <div class="ftco-footer-widget mb-4">
+                    <h2 class="ftco-heading-2">Recent Blog</h2>
+                    <div class="block-21 mb-4 d-flex">
+                        <a class="blog-img mr-4" style="background-image: url('/images/image_1.jpg')"></a>
+                        <div class="text">
+                            <h3 class="heading"><a href="#">Even the all-powerful Pointing has no control about</a></h3>
+                            <div class="meta">
+                                <div><a href="#"><span class="icon-calendar"></span> Sept 15, 2018</a></div>
+                                <div><a href="#"><span class="icon-person"></span> Admin</a></div>
+                                <div><a href="#"><span class="icon-chat"></span> 19</a></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="block-21 mb-4 d-flex">
+                        <a class="blog-img mr-4" style="background-image: url('/images/image_2.jpg')"></a>
+                        <div class="text">
+                            <h3 class="heading"><a href="#">Even the all-powerful Pointing has no control about</a></h3>
+                            <div class="meta">
+                                <div><a href="#"><span class="icon-calendar"></span> Sept 15, 2018</a></div>
+                                <div><a href="#"><span class="icon-person"></span> Admin</a></div>
+                                <div><a href="#"><span class="icon-chat"></span> 19</a></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6 mb-5 mb-md-5">
+                <div class="ftco-footer-widget mb-4 ml-md-4">
+                    <h2 class="ftco-heading-2">Services</h2>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="py-2 d-block">Cooked</a></li>
+                        <li><a href="#" class="py-2 d-block">Deliver</a></li>
+                        <li><a href="#" class="py-2 d-block">Quality Foods</a></li>
+                        <li><a href="#" class="py-2 d-block">Mixed</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-5 mb-md-5">
+                <div class="ftco-footer-widget mb-4">
+                    <h2 class="ftco-heading-2">Have a Questions?</h2>
+                    <div class="block-23 mb-3">
+                        <ul>
+                            <li><span class="icon icon-map-marker"></span><span class="text">203 Fake St. Mountain View, San Francisco, California, USA</span></li>
+                            <li><a href="#"><span class="icon icon-phone"></span><span class="text">+2 392 3929 210</span></a></li>
+                            <li><a href="#"><span class="icon icon-envelope"></span><span class="text">info@yourdomain.com</span></a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <p>
+                    Copyright &copy;
+                    <script>document.write(new Date().getFullYear());</script>
+                    All rights reserved | Template made with <i class="icon-heart" aria-hidden="true"></i> by
+                    <a href="https://colorlib.com" target="_blank">Colorlib</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<div id="ftco-loader" class="show fullscreen">
+    <svg class="circular" width="48px" height="48px">
+        <circle class="path-bg" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke="#eeeeee"/>
+        <circle class="path" cx="24" cy="24" r="22" fill="none" stroke-width="4" stroke-miterlimit="10" stroke="#F96D00"/>
+    </svg>
+</div>
+
+<script th:src="@{/js/jquery.min.js}"></script>
+<script th:src="@{/js/jquery-migrate-3.0.1.min.js}"></script>
+<script th:src="@{/js/popper.min.js}"></script>
+<script th:src="@{/js/bootstrap.min.js}"></script>
+<script th:src="@{/js/jquery.easing.1.3.js}"></script>
+<script th:src="@{/js/jquery.waypoints.min.js}"></script>
+<script th:src="@{/js/jquery.stellar.min.js}"></script>
+<script th:src="@{/js/owl.carousel.min.js}"></script>
+<script th:src="@{/js/jquery.magnific-popup.min.js}"></script>
+<script th:src="@{/js/aos.js}"></script>
+<script th:src="@{/js/jquery.animateNumber.min.js}"></script>
+<script th:src="@{/js/bootstrap-datepicker.js}"></script>
+<script th:src="@{/js/jquery.timepicker.min.js}"></script>
+<script th:src="@{/js/scrollax.min.js}"></script>
+<script th:src="@{/js/main.js}"></script>
+
+<script>
+    const formatter = new Intl.NumberFormat('vi-VN', {style: 'currency', currency: 'VND', maximumFractionDigits: 0});
+
+    function formatCurrency(value) {
+        if (value === null || value === undefined) {
+            return '0 ₫';
+        }
+        return formatter.format(value);
+    }
+
+    function showMessage(message, isError = false) {
+        const messageDiv = document.getElementById('cart-message');
+        if (!messageDiv) return;
+        messageDiv.textContent = message || '';
+        messageDiv.classList.toggle('text-danger', isError);
+        messageDiv.classList.toggle('text-info', !isError);
+    }
+
+    function refreshCartSummary(summary) {
+        if (!summary) {
+            fetch('/menu/cart')
+                .then(resp => resp.json())
+                .then(data => refreshCartSummary(data));
+            return;
+        }
+        const cartItemsContainer = document.getElementById('cart-items');
+        if (!cartItemsContainer) return;
+
+        if (!summary.items || summary.items.length === 0) {
+            cartItemsContainer.innerHTML = `
+                <div class="empty-cart">
+                    <i class="icon-smile-o" style="font-size: 48px;"></i>
+                    <p class="mt-3">Giỏ hàng trống. Hãy thêm món bạn yêu thích!</p>
+                </div>`;
+        } else {
+            cartItemsContainer.innerHTML = summary.items.map(item => renderCartItem(item)).join('');
+        }
+
+        const subtotalEl = document.getElementById('cart-subtotal');
+        const discountEl = document.getElementById('cart-discount');
+        const totalEl = document.getElementById('cart-total');
+
+        if (subtotalEl) subtotalEl.textContent = formatCurrency(summary.subtotal);
+        if (discountEl) {
+            discountEl.textContent = '- ' + formatCurrency(summary.voucherDiscount || 0);
+            discountEl.parentElement.classList.toggle('d-none', !summary.voucherDiscount || summary.voucherDiscount <= 0);
+        }
+        if (totalEl) totalEl.textContent = formatCurrency(summary.total);
+
+        const voucherSelect = document.getElementById('voucher-code');
+        if (voucherSelect && summary.voucherCode) {
+            voucherSelect.value = summary.voucherCode;
+        } else if (voucherSelect && !summary.voucherCode) {
+            voucherSelect.value = '';
+        }
+
+        showMessage(summary.message, false);
+    }
+
+    function renderCartItem(item) {
+        const discountInfo = item.discountPerUnit && item.discountPerUnit > 0
+            ? `<small class="text-success">Tiết kiệm ${formatCurrency(item.discountPerUnit * item.quantity)}</small>`
+            : '';
+
+        let comboInfo = '';
+        if (item.type === 'COMBO' && item.comboItems && item.comboItems.length > 0) {
+            comboInfo = `
+                <div class="small text-success mt-2">
+                    <strong>Combo gồm:</strong>
+                    ${item.comboItems.map(component => `
+                        <div class="pl-2">
+                            ${component.quantity}x ${component.productName}
+                        </div>`).join('')}
+                </div>`;
+        }
+
+        return `
+            <div class="cart-item">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="font-weight-bold">${item.name}</div>
+                        <div class="text-muted small">Đơn giá: ${formatCurrency(item.unitPrice)}</div>
+                        <div class="quantity-control mt-2 d-flex align-items-center gap-2">
+                            <button type="button" onclick="changeQuantity('${item.id}', ${item.quantity - 1})">
+                                <i class="icon-minus"></i>
+                            </button>
+                            <span>${item.quantity}</span>
+                            <button type="button" onclick="changeQuantity('${item.id}', ${item.quantity + 1})">
+                                <i class="icon-plus"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-danger ml-3"
+                                    onclick="removeItem('${item.id}')">
+                                <i class="icon-trash"></i>
+                            </button>
+                        </div>
+                        ${comboInfo}
+                    </div>
+                    <div class="text-right">
+                        <div class="text-warning font-weight-bold">${formatCurrency(item.totalPrice)}</div>
+                        ${discountInfo}
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    function handleResponse(response) {
+        return response.json().then(data => {
+            if (!response.ok) {
+                showMessage(data.message || 'Có lỗi xảy ra', true);
+            } else {
+                showMessage(data.message || '');
+            }
+            refreshCartSummary(data);
+        }).catch(() => {
+            showMessage('Không thể xử lý phản hồi từ máy chủ', true);
+        });
+    }
+
+    function addProductToCart(productId) {
+        const params = new URLSearchParams({productId, quantity: 1});
+        fetch('/menu/cart/add-product', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: params.toString()
+        }).then(handleResponse)
+            .catch(() => showMessage('Không thể thêm sản phẩm vào giỏ', true));
+    }
+
+    function addComboToCart(comboId) {
+        const params = new URLSearchParams({comboId, quantity: 1});
+        fetch('/menu/cart/add-combo', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: params.toString()
+        }).then(handleResponse)
+            .catch(() => showMessage('Không thể thêm combo vào giỏ', true));
+    }
+
+    function changeQuantity(itemId, quantity) {
+        const params = new URLSearchParams({itemId, quantity});
+        fetch('/menu/cart/update-quantity', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: params.toString()
+        }).then(handleResponse)
+            .catch(() => showMessage('Không thể cập nhật số lượng', true));
+    }
+
+    function removeItem(itemId) {
+        const params = new URLSearchParams({itemId});
+        fetch('/menu/cart/remove', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: params.toString()
+        }).then(handleResponse)
+            .catch(() => showMessage('Không thể xoá sản phẩm', true));
+    }
+
+    function applyVoucher() {
+        const voucherSelect = document.getElementById('voucher-code');
+        const code = voucherSelect ? voucherSelect.value : '';
+        if (!code || code.trim() === '') {
+            showMessage('Vui lòng chọn voucher', true);
+            return;
+        }
+        const params = new URLSearchParams({code});
+        fetch('/menu/cart/apply-voucher', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: params.toString()
+        }).then(handleResponse)
+            .catch(() => showMessage('Không thể áp dụng voucher', true));
+    }
+    
+    // Load danh sách voucher đang hoạt động
+    function loadVouchers() {
+        fetch('/vouchers/api/active')
+            .then(response => response.json())
+            .then(vouchers => {
+                const voucherSelect = document.getElementById('voucher-code');
+                if (!voucherSelect) return;
+                
+                // Clear existing options except the first one
+                voucherSelect.innerHTML = '<option value="">-- Chọn voucher --</option>';
+                
+                // Add voucher options
+                vouchers.forEach(voucher => {
+                    const option = document.createElement('option');
+                    option.value = voucher.code;
+                    let label = voucher.code;
+                    if (voucher.discountPercent && voucher.discountPercent > 0) {
+                        label += ` - Giảm ${voucher.discountPercent}%`;
+                    } else if (voucher.discountAmount && voucher.discountAmount > 0) {
+                        label += ` - Giảm ${formatCurrency(voucher.discountAmount)}`;
+                    }
+                    option.textContent = label;
+                    voucherSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Không thể tải danh sách voucher:', error);
+            });
+    }
+
+    function removeVoucher() {
+        fetch('/menu/cart/remove-voucher', {method: 'POST'})
+            .then(resp => resp.json())
+            .then(data => {
+                showMessage(data.message || '');
+                refreshCartSummary(data);
+                // Reset dropdown về giá trị mặc định
+                const voucherSelect = document.getElementById('voucher-code');
+                if (voucherSelect) voucherSelect.value = '';
+            })
+            .catch(() => showMessage('Không thể hủy voucher', true));
+    }
+
+    function toggleShippingForm() {
+        const orderType = document.querySelector('input[name="orderType"]:checked').value;
+        const shippingForm = document.getElementById('shipping-form');
+        const orderTypeInput = document.getElementById('order-type-input');
+        
+        if (orderType === 'DELIVERY') {
+            shippingForm.style.display = 'block';
+            // Set required cho các input
+            document.getElementById('shipping-address').required = true;
+            document.getElementById('shipping-contact-name').required = true;
+            document.getElementById('shipping-contact-phone').required = true;
+        } else {
+            shippingForm.style.display = 'none';
+            // Remove required
+            document.getElementById('shipping-address').required = false;
+            document.getElementById('shipping-contact-name').required = false;
+            document.getElementById('shipping-contact-phone').required = false;
+        }
+        
+        if (orderTypeInput) {
+            orderTypeInput.value = orderType;
+        }
+    }
+    
+    // Khởi tạo: hiển thị shipping form mặc định vì chỉ có DELIVERY và load vouchers
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleShippingForm();
+        loadVouchers();
+    });
+
+    function submitCheckout(method) {
+        const form = document.getElementById('checkout-form');
+        if (!form) return;
+        
+        const orderType = document.querySelector('input[name="orderType"]:checked').value;
+        document.getElementById('order-type-input').value = orderType;
+        
+        // Validate shipping info (luôn cần vì chỉ có DELIVERY)
+        const address = document.getElementById('shipping-address').value.trim();
+        const contactName = document.getElementById('shipping-contact-name').value.trim();
+        const contactPhone = document.getElementById('shipping-contact-phone').value.trim();
+        
+        if (!address || !contactName || !contactPhone) {
+            alert('Vui lòng điền đầy đủ thông tin giao hàng');
+            return;
+        }
+        
+        document.getElementById('shipping-address-input').value = address;
+        document.getElementById('shipping-contact-name-input').value = contactName;
+        document.getElementById('shipping-contact-phone-input').value = contactPhone;
+        
+        document.getElementById('paymentMethod').value = method;
+        form.action = '/menu/checkout';
+        form.method = 'POST';
+        form.submit();
+    }
+</script>
+</body>
+</html>
+
