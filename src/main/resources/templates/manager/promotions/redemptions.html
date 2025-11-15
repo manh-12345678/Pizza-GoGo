@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{manager/fragments/layout :: managerLayout('promotions', ~{::content})}">
+<body>
+<div th:fragment="content">
+    <div th:replace="~{manager/fragments/layout :: managerHead('Quản lý đổi promotion', ~{manager/fragments/layout :: emptyScripts})}"></div>
+    
+    <h1 class="manager-page-title">Quản lý đổi promotion</h1>
+    
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5>Danh sách yêu cầu đổi promotion</h5>
+        </div>
+        <div class="card-body">
+            <div th:if="${#lists.isEmpty(redemptions)}" class="text-center text-muted">
+                Không có yêu cầu đổi promotion nào.
+            </div>
+            <div th:unless="${#lists.isEmpty(redemptions)}" class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Ngày đổi</th>
+                            <th>Khách hàng</th>
+                            <th>Promotion</th>
+                            <th>Điểm đã dùng</th>
+                            <th>Trạng thái</th>
+                            <th>Mã voucher</th>
+                            <th>Ghi chú</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="redemption : ${redemptions}">
+                            <td th:text="${#temporals.format(redemption.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                            <td th:text="${redemption.customer.name}"></td>
+                            <td th:text="${redemption.promotion.name}"></td>
+                            <td th:text="${redemption.pointsUsed}"></td>
+                            <td>
+                                <span th:if="${redemption.status == 'COMPLETED'}" class="badge bg-success">Hoàn thành</span>
+                                <span th:if="${redemption.status == 'PENDING'}" class="badge bg-warning">Chờ xác nhận</span>
+                                <span th:if="${redemption.status == 'CANCELLED'}" class="badge bg-danger">Đã hủy</span>
+                            </td>
+                            <td>
+                                <span th:if="${redemption.voucherCode != null}" th:text="${redemption.voucherCode}" class="badge bg-info"></span>
+                                <span th:unless="${redemption.voucherCode != null}">-</span>
+                            </td>
+                            <td th:text="${redemption.notes ?: '-'}"></td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <form th:if="${redemption.status == 'PENDING'}" 
+                                          th:action="@{/manager/promotions/redemptions/{id}/complete(id=${redemption.redemptionId})}" 
+                                          method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="bi bi-check"></i> Xác nhận
+                                        </button>
+                                    </form>
+                                    <form th:if="${redemption.status == 'PENDING'}" 
+                                          th:action="@{/manager/promotions/redemptions/{id}/cancel(id=${redemption.redemptionId})}" 
+                                          method="post" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-danger" 
+                                                onclick="return confirm('Bạn có chắc muốn hủy yêu cầu này? Điểm sẽ được hoàn lại cho khách hàng.')">
+                                            <i class="bi bi-x"></i> Hủy
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="~{manager/fragments/layout :: managerScripts(~{manager/fragments/layout :: emptyScripts})}"></div>
+</body>
+</html>
+

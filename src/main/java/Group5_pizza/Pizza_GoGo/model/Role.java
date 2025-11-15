@@ -1,5 +1,6 @@
 package Group5_pizza.Pizza_GoGo.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
@@ -19,5 +20,7 @@ public class Role {
     private String roleName;
 
     @OneToMany(mappedBy = "role")
+    @ToString.Exclude
+    @JsonManagedReference
     private List<Account> accounts;
 }

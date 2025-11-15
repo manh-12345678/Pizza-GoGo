@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{manager/fragments/layout :: managerHead('Quản lý tài khoản', ~{::extraHead})}">
+    <th:block th:fragment="extraHead">
+        <style>
+            .card { margin-bottom: 20px; }
+            .search-box { max-width: 500px; }
+            .table-actions { white-space: nowrap; }
+            .btn-sm { margin: 2px; }
+        </style>
+    </th:block>
+</head>
+<body>
+<div th:replace="~{manager/fragments/layout :: managerLayout('accounts', ~{::pageContent})}">
+    <div th:fragment="pageContent">
+        <div class="container px-0">
+            <h2 class="mb-4"><i class="bi bi-people"></i> Quản lý Tài khoản</h2>
+
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle"></i> <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle"></i> <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <form th:action="@{/manager/accounts/manage}" method="get" class="d-flex search-box">
+                                <input type="text" name="search" class="form-control me-2"
+                                       placeholder="Tìm theo Username, Email, Tên..." th:value="${search}">
+
+                                <select name="roleId" class="form-select me-2" style="width: 200px;">
+                                    <option value="">-- Tất cả Role --</option>
+                                    <option th:each="role : ${roles}"
+                                            th:value="${role.roleId}"
+                                            th:text="${role.roleName}"
+                                            th:selected="${roleId != null && roleId == role.roleId}"></option>
+                                </select>
+
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-search"></i> Tìm
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a th:href="@{/manager/accounts/add}" class="btn btn-success">
+                                <i class="bi bi-plus-circle"></i> Thêm Tài khoản Mới
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <div th:if="${accounts == null || accounts.isEmpty()}" class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Không có tài khoản nào.
+                    </div>
+
+                    <div th:if="${accounts != null && !accounts.isEmpty()}" class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Họ tên</th>
+                                <th>Email</th>
+                                <th>Vai trò (Role)</th>
+                                <th>Trạng thái</th>
+                                <th class="text-center">Thao tác</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="acc : ${accounts}">
+                                <td th:text="${acc.userId}"></td>
+                                <td>
+                                    <strong th:text="${acc.username}"></strong>
+                                </td>
+                                <td th:text="${acc.fullName}"></td>
+                                <td th:text="${acc.email}"></td>
+                                <td>
+                                    <span class="badge"
+                                          th:classappend="${acc.roleName == 'ADMIN' ? 'bg-danger' : (acc.roleName == 'STAFF' ? 'bg-info' : 'bg-secondary')}"
+                                          th:text="${acc.roleName}"></span>
+                                </td>
+                                <td>
+                                    <span th:if="${acc.isDeleted}" class="badge bg-danger">Vô hiệu hóa</span>
+                                    <span th:if="${!acc.isDeleted && acc.isConfirmed}" class="badge bg-success">Đã xác thực</span>
+                                    <span th:if="${!acc.isDeleted && !acc.isConfirmed}" class="badge bg-warning text-dark">Chưa xác thực</span>
+                                </td>
+                                <td class="text-center table-actions">
+                                    <a th:href="@{/manager/accounts/edit/{id}(id=${acc.userId})}"
+                                       class="btn btn-sm btn-warning" title="Chỉnh sửa">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form th:if="${!acc.isDeleted}" th:action="@{/manager/accounts/delete/{id}(id=${acc.userId})}"
+                                          method="post" style="display:inline;"
+                                          onsubmit="return confirm('Bạn có chắc chắn muốn VÔ HIỆU HÓA tài khoản này?');">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Vô hiệu hóa">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block th:replace="~{manager/fragments/layout :: managerScripts(~{manager/fragments/layout :: emptyScripts})}"></th:block>
+</body>
+</html>
